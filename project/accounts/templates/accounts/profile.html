@@ -1,0 +1,46 @@
+{% extends 'accounts/base.html' %} <!-- สมมติว่าไฟล์ base.html มีการดึง Bootstrap 5 CDN ไว้แล้ว -->
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">จัดการโปรไฟล์นักพัฒนา</h5>
+                </div>
+                <div class="card-body p-4">
+                    <!-- กฎเหล็ก: มีการอัปโหลดไฟล์ ต้องใส่ enctype="multipart/form-data" เสมอ -->
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+                        
+                        {% for field in form %}
+                            <div class="mb-3">
+                                <label for="{{ field.id_for_label }}" class="form-label fw-bold">
+                                    {{ field.label }}
+                                </label>
+                                {{ field }}
+                                
+                                <!-- แสดงข้อความแจ้งเตือน Error เฉพาะฟิลด์นั้น -->
+                                {% if field.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in field.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                
+                                <!-- แสดง help_text ถ้ามีการกำหนดไว้ใน Model -->
+                                {% if field.help_text %}
+                                    <div class="form-text">{{ field.help_text }}</div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                        
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">บันทึกโปรไฟล์</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
