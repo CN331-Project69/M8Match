@@ -1,0 +1,124 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Project | M8Match</title>
+
+    <link rel="stylesheet" href="{% static 'matching/css/create_project.css' %}">
+</head>
+<body>
+    <div class="page-container">
+
+        <!-- Header -->
+        <header class="header">
+            <a href="{% url 'home' %}" class="logo">
+                M8Match
+            </a>
+
+            <a href="{% url 'home' %}" class="back-button">
+                Back to Menu
+            </a>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+            <h1 class="page-title">Create Your Project</h1>
+
+            <form method="post" class="project-form">
+                {% csrf_token %}
+
+            <div class="three-box-container">
+
+                <!-- Box 1: User Profile -->
+                <section class="project-box profile-box">
+                    <h2>Your Profile</h2>
+
+                    <div
+                        class="profile-content"
+                        id="user-profile"
+                    >
+                        <!-- User profile information will be displayed here. -->
+                        <!-- Profile data will be loaded from the user's account. -->
+                    </div>
+                </section>
+
+                <!-- Box 2: Team Information -->
+                <section class="project-box team-box">
+                    <h2>Team Information</h2>
+
+                    <p class="box-description">
+                        If you don't have a team, you can leave this section blank.
+                    </p>
+
+                    <div
+                        class="category-selection"
+                        id="team-category-selection"
+                    >
+                        <!-- Team Category Select Component will be inserted here. -->
+                    </div>
+
+                    <div class="team-details">
+                        <label for="team-details">
+                            Additional Details
+                        </label>
+
+                        <textarea
+                            id="team-details"
+                            name="team_details"
+                            placeholder="Describe your team's skills or experience..."
+                            rows="5"
+                        >{% if project %}{{ project.team_details }}{% endif %}</textarea>
+                    </div>
+                </section>
+
+                <!-- Box 3: Member Requirements -->
+                <section class="project-box requirements-box">
+                    <h2>Member Requirements</h2>
+
+                    <div
+                        class="category-selection"
+                        id="requirements-category-selection"
+                    >
+                        <!-- Requirements Category Select Component will be inserted here. -->
+                    </div>
+
+                    <div class="requirements-details">
+                        <label for="requirements-details">
+                            Additional Details
+                        </label>
+
+                        <textarea
+                            id="requirements-details"
+                            name="requirements_details"
+                            placeholder="Describe the skills or qualifications you are looking for..."
+                            rows="5"
+                            required
+                        >{% if project %}{{ project.requirements_details }}{% endif %}</textarea>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- Match Button -->
+            <div class="match-action">
+                <button type="submit" class="match-button">
+                    Match!
+                </button>
+            </div>
+
+            </form>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>It's better together!</p>
+        </footer>
+
+    </div>
+</body>
+</html>
