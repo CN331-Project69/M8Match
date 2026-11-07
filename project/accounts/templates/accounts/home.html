@@ -12,6 +12,8 @@
 
         <h2>Welcome, {{ user.username }}</h2>
 
+        <a href="{% url 'profile_update' %}">profile settings</a>
+        
         <form method="POST" action="{% url 'logout' %}">
             {% csrf_token %}
             <button type="submit">Logout</button>
