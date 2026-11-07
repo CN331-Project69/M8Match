@@ -196,3 +196,77 @@ body {
 .requirements-details textarea::placeholder {
     color: #A5A5A5;
 }
+
+
+/* Your Profile */
+.profile-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    width: 100%;
+    min-width: 0;
+    text-align: center;
+}
+
+/* Profile Picture */
+.profile-content .profile-picture {
+    width: 80px;
+    height: 80px;
+    flex: 0 0 80px;
+    overflow: hidden;
+    border-radius: 50%;
+    border: 2px solid #E9B7D1;
+}
+
+.profile-content .profile-picture img {
+    width: 80px;
+    height: 80px;
+    display: block;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+/* Profile Information */
+.profile-info {
+    width: 100%;
+    min-width: 0;
+    text-align: left;
+    overflow-wrap: anywhere;
+}
+
+.profile-info h3 {
+    color: #C84C91;
+    font-size: 20px;
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+.profile-info > p {
+    font-size: 14px;
+    line-height: 1.7;
+    margin-bottom: 18px;
+    color: #35485A;
+}
+
+/* Skills */
+.profile-skills {
+    background-color: #FCE8F1;
+    border: 1px solid #E9B7D1;
+    border-radius: 10px;
+    padding: 12px;
+}
+
+.profile-skills strong {
+    display: block;
+    color: #C84C91;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.profile-skills p {
+    font-size: 14px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+    color: #35485A;
+}
