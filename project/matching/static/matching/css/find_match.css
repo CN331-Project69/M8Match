@@ -79,37 +79,44 @@ body {
     font-size: 15px;
 }
 
-/* Match Grid */
+
+/* Match Grid - Stack Cards */
 .match-grid {
-    display: grid;
-    grid-template-columns: repeat(
-        auto-fit,
-        minmax(280px, 1fr)
-    );
-    gap: 24px;
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    height: 680px;
+    margin: 0 auto;
+    display: block;
 }
 
-/* Match Card */
+
+
+/* Match Card - Stacked */
 .match-card {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    flex-direction: column;
+
     background-color: #FFF9ED;
     border: 2px solid #E9B7D1;
     border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 4px 12px rgba(120, 65, 95, 0.10);
-    transition: transform 0.2s, box-shadow 0.2s;
+
+    box-shadow: 0 4px 12px rgba(120, 65, 95, 0.15);
 }
 
-.match-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 18px rgba(120, 65, 95, 0.15);
-}
+
 
 /* Profile Picture */
-
 .profile-picture {
-    width: 75px;
-    height: 75px;
-    margin: 0 auto 12px;
+    width: 90px;
+    height: 90px;
+    margin: 20px auto 12px;
     overflow: hidden;
     border-radius: 50%;
     border: 2px solid #E9B7D1;
@@ -122,6 +129,7 @@ body {
     object-fit: cover;
     border-radius: 50%;
 }
+
 
 .no-picture {
     display: flex;
@@ -170,6 +178,14 @@ body {
     color: #35485A;
     overflow-wrap: anywhere;
 }
+
+.card-content {
+    padding: 10px 24px;
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+}
+
 
 /* Matching Skills */
 .skill-list {
@@ -251,23 +267,26 @@ body {
 }
 
 /* Swipe Actions */
-
 .swipe-actions {
     display: flex;
     justify-content: center;
-    gap: 25px;
-    margin-top: 25px;
-}
-
-.swipe-form {
-    margin: 0;
+    align-items: center;
+    gap: 30px;
+    padding: 20px 24px 24px;
+    margin-top: auto;
+    background-color: #FFF9ED;
+    border-top: 1px solid #F0D8E5;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 5;
 }
 
 .swipe-actions button {
-    min-width: 115px;
-    padding: 12px 22px;
-    border-radius: 12px;
-    font-size: 16px;
+    width: 155px;
+    min-height: 54px;
+    padding: 14px 24px;
+    border-radius: 14px;
+    font-size: 18px;
     font-weight: bold;
     cursor: pointer;
     transition: 0.2s ease;
@@ -279,21 +298,17 @@ body {
     border: 2px solid #E6A4C7;
 }
 
-.pass-button:hover {
-    background-color: #F5C2D9;
-    transform: scale(1.05);
-}
-
 .like-button {
     background-color: #F3B84F;
     color: white;
     border: 2px solid #E7A936;
 }
 
+.pass-button:hover,
 .like-button:hover {
-    background-color: #EBAA37;
-    transform: scale(1.05);
+    transform: scale(1.06);
 }
+
 
 /* Card Dragging */
 
@@ -334,4 +349,122 @@ body {
 
 .message.info {
     border-color: #E6A4C7;
+}
+.match-popup {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(420px, calc(100% - 30px));
+    z-index: 9999;
+
+    animation: popupSlideDown 0.35s ease;
+}
+
+.popup-content {
+    position: relative;
+    background: white;
+    padding: 25px;
+    border-radius: 18px;
+    text-align: center;
+    box-shadow: 0 8px 35px rgba(0, 0, 0, 0.18);
+}
+
+.popup-close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    border: none;
+    background: none;
+    font-size: 25px;
+    cursor: pointer;
+}
+
+.match-label {
+    color: #ff4f81;
+    font-size: 25px;
+    font-weight: bold;
+}
+
+.popup-content h2 {
+    font-size: 18px;
+    margin: 8px 0 15px;
+}
+
+.popup-avatar {
+    width: 85px;
+    height: 85px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.no-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: auto;
+    background: #eee;
+    font-size: 30px;
+}
+
+.popup-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.popup-actions button,
+.popup-actions a {
+    flex: 1;
+    padding: 11px 8px;
+    border: none;
+    border-radius: 9px;
+    text-decoration: none;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.continue-button {
+    background: #eee;
+    color: #333;
+}
+
+.chat-button {
+    background-color: #FCE8F1;
+    color: #C84C91;
+    border: 1px solid #E9B7D1;
+    opacity: 0.8;
+    cursor: not-allowed;
+}
+
+.chat-button:disabled {
+    background-color: #FCE8F1;
+    color: #C84C91;
+}
+
+.match-card:nth-child(n+2) {
+    filter: blur(8px);
+    transform: scale(0.94) translateY(14px);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.match-card:first-child {
+    filter: none;
+    transform: none;
+    z-index: 2;
+}
+
+
+
+@keyframes popupSlideDown {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -25px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
 }

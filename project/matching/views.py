@@ -1,12 +1,11 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
 from django.shortcuts import redirect
-
-from .models import Project
-from accounts.models import Profile
-
 from django.contrib import messages
 from django.core.exceptions import ValidationError
+
+from accounts.models import Profile
+from categories.models import Category
 
 from .models import Project, Swipe
 from .services import find_matching_projects, swipe_user
@@ -28,17 +27,32 @@ class CreateProjectView(LoginRequiredMixin, TemplateView):
             .first()
         )
 
-        context["project"] = project
-
         profile = Profile.objects.filter(user=self.request.user).first()
 
+        context["project"] = project
         context["profile"] = profile
+        context["categories"] = Category.objects.filter(is_active=True)
+
+        if project:
+            context["selected_team_categories"] = project.team_categories.values_list(
+                "id", flat=True
+            )
+
+            context["selected_required_categories"] = (
+                project.required_categories.values_list("id", flat=True)
+            )
+        else:
+            context["selected_team_categories"] = []
+            context["selected_required_categories"] = []
 
         return context
 
     def post(self, request, *args, **kwargs):
         team_details = request.POST.get("team_details", "")
         requirements_details = request.POST.get("requirements_details", "")
+
+        team_category_ids = request.POST.getlist("team_categories")
+        required_category_ids = request.POST.getlist("required_categories")
 
         project = (
             Project.objects.filter(
@@ -54,11 +68,19 @@ class CreateProjectView(LoginRequiredMixin, TemplateView):
             project.requirements_details = requirements_details
             project.save()
         else:
-            Project.objects.create(
+            project = Project.objects.create(
                 user=request.user,
                 team_details=team_details,
                 requirements_details=requirements_details,
             )
+
+        active_categories = Category.objects.filter(is_active=True)
+
+        project.team_categories.set(active_categories.filter(id__in=team_category_ids))
+
+        project.required_categories.set(
+            active_categories.filter(id__in=required_category_ids)
+        )
 
         return redirect("find_match")
 
@@ -70,15 +92,12 @@ class FindMatchView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        # Find matching projects
         matches = find_matching_projects(self.request.user)
 
-        # Get users who have already been swiped
         swiped_user_ids = Swipe.objects.filter(swiper=self.request.user).values_list(
             "swiped_user_id", flat=True
         )
 
-        # Exclude already-swiped users
         matches = [
             item for item in matches if item["project"].user_id not in swiped_user_ids
         ]
@@ -86,10 +105,12 @@ class FindMatchView(LoginRequiredMixin, TemplateView):
         context["matches"] = matches
         context["has_matches"] = bool(matches)
 
+        # แสดง Popup เพียงครั้งเดียวหลังจากเกิด Match
+        context["new_match"] = self.request.session.pop("new_match", None)
+
         return context
 
     def post(self, request, *args, **kwargs):
-
         target_user_id = request.POST.get("target_user_id")
         direction = request.POST.get("direction")
 
@@ -101,15 +122,32 @@ class FindMatchView(LoginRequiredMixin, TemplateView):
             )
 
             if result["matched"]:
-                messages.success(request, "It's a Match! You both like each other!")
+                match = result["match"]
 
-            elif direction == Swipe.LEFT:
-                messages.info(request, "You passed this user.")
+                other_user = (
+                    match.user2 if match.user1_id == request.user.id else match.user1
+                )
+
+                profile = getattr(other_user, "profile", None)
+
+                request.session["new_match"] = {
+                    "match_id": match.id,
+                    "display_name": (
+                        profile.display_name
+                        if profile and profile.display_name
+                        else other_user.username
+                    ),
+                    "profile_picture": (
+                        profile.profile_picture.url
+                        if profile and profile.profile_picture
+                        else ""
+                    ),
+                }
 
             else:
-                messages.success(request, "Like sent! Waiting for their response.")
+                messages.info(request, "Your swipe has been saved.")
 
-        except (ValidationError, ValueError) as error:
-            messages.error(request, str(error))
+        except ValidationError as error:
+            messages.error(request, error.message)
 
         return redirect("find_match")

@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.db.models import Q, F
+from categories.models import Category
 
 
 class Project(models.Model):
@@ -11,6 +12,18 @@ class Project(models.Model):
     team_details = models.TextField(blank=True)
     requirements_details = models.TextField()
     is_active = models.BooleanField(default=True)
+
+    team_categories = models.ManyToManyField(
+        Category,
+        blank=True,
+        related_name="projects_with_team",
+    )
+
+    required_categories = models.ManyToManyField(
+        Category,
+        blank=True,
+        related_name="projects_seeking_members",
+    )
 
     def __str__(self):
         return f"{self.user.username}'s Project"

@@ -86,11 +86,37 @@
                         If you don't have a team, you can leave this section blank.
                     </p>
 
-                    <div
-                        class="category-selection"
-                        id="team-category-selection"
-                    >
-                        <!-- Team Category Select Component will be inserted here. -->
+                    <div class="category-selection" id="team-category-selection">
+
+                        <h3>Select Your Team Skills</h3>
+
+                        <div class="category-list">
+
+                            {% for category in categories %}
+
+                                <label class="category-option">
+
+                                    <input
+                                        type="checkbox"
+                                        name="team_categories"
+                                        value="{{ category.id }}"
+                                        {% if category.id in selected_team_categories %}
+                                            checked
+                                        {% endif %}
+                                    >
+
+                                    <span>{{ category.name }}</span>
+
+                                </label>
+
+                            {% empty %}
+
+                                <p>No categories available.</p>
+
+                            {% endfor %}
+
+                        </div>
+
                     </div>
 
                     <div class="team-details">
@@ -115,7 +141,36 @@
                         class="category-selection"
                         id="requirements-category-selection"
                     >
-                        <!-- Requirements Category Select Component will be inserted here. -->
+
+                        <h3>Skills You Are Looking For</h3>
+
+                        <div class="category-list">
+
+                            {% for category in categories %}
+
+                                <label class="category-option">
+
+                                    <input
+                                        type="checkbox"
+                                        name="required_categories"
+                                        value="{{ category.id }}"
+                                        {% if category.id in selected_required_categories %}
+                                            checked
+                                        {% endif %}
+                                    >
+
+                                    <span>{{ category.name }}</span>
+
+                                </label>
+
+                            {% empty %}
+
+                                <p>No categories available.</p>
+
+                            {% endfor %}
+
+                        </div>
+
                     </div>
 
                     <div class="requirements-details">

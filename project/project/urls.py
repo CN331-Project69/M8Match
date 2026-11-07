@@ -13,10 +13,8 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("accounts.urls")),
-    path(
-        "create-project/",
-        include("matching.urls"),
-    ),
+    path("create-project/", include("matching.urls")),
+    path("categories/", include("categories.urls")),
 ]
 
 

@@ -13,7 +13,56 @@
 </head>
 
 <body>
+{% if new_match %}
+<div class="match-popup" id="matchPopup">
 
+    <div class="popup-content">
+
+        <button class="popup-close"
+                onclick="closeMatchPopup()">
+            &times;
+        </button>
+
+        <div class="match-label">IT'S A MATCH!</div>
+
+        <h2>You found your teammate!</h2>
+
+        {% if new_match.profile_picture %}
+            <img
+                src="{{ new_match.profile_picture }}"
+                class="popup-avatar"
+                alt="Profile Picture"
+            >
+        {% else %}
+            <div class="popup-avatar no-avatar">
+                ?
+            </div>
+        {% endif %}
+
+        <h3>{{ new_match.display_name }}</h3>
+
+        <p>You and {{ new_match.display_name }}
+           liked each other!</p>
+
+        <div class="popup-actions">
+
+            <button onclick="closeMatchPopup()"
+                    class="continue-button">
+                Continue Swiping
+            </button>
+
+            <button type="button"
+                    class="chat-button"
+                    disabled
+                    title="Chat feature is not available yet">
+                Chat Coming Soon
+            </button>
+
+        </div>
+
+    </div>
+</div>
+{% endif %}
 <div class="page-container">
 
     <!-- Header -->
@@ -291,6 +340,14 @@ document.querySelectorAll("[data-swipe-card]").forEach(card => {
 });
 
 </script>
+<script>
+    function closeMatchPopup() {
+    const popup = document.getElementById("matchPopup");
 
+    if (popup) {
+        popup.remove();
+    }
+}
+</script>
 </body>
 </html>
