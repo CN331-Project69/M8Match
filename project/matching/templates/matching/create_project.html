@@ -37,12 +37,44 @@
                 <section class="project-box profile-box">
                     <h2>Your Profile</h2>
 
-                    <div
-                        class="profile-content"
-                        id="user-profile"
-                    >
-                        <!-- User profile information will be displayed here. -->
-                        <!-- Profile data will be loaded from the user's account. -->
+                    <div class="profile-content" id="user-profile">
+
+                        {% if profile %}
+
+                            <!-- Profile Picture -->
+                            <div class="profile-picture">
+                                {% if profile.profile_picture %}
+                                    <img
+                                        src="{{ profile.profile_picture.url }}"
+                                        alt="Profile Picture"
+                                    >
+                                {% else %}
+                                    <p>No profile picture</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Display Name -->
+                            <div class="profile-info">
+                                <h3>{{ profile.display_name|default:request.user.username }}</h3>
+
+                                <!-- About Me -->
+                                <p>
+                                    {{ profile.about_me|default:"No introduction yet." }}
+                                </p>
+
+                                <!-- Skills -->
+                                <div class="profile-skills">
+                                    <strong>Skills:</strong>
+                                    <p>{{ profile.skills|default:"No skills added yet." }}</p>
+                                </div>
+                            </div>
+
+                        {% else %}
+
+                            <p>Profile information is not available.</p>
+
+                        {% endif %}
+
                     </div>
                 </section>
 

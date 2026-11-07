@@ -2,6 +2,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
 
 from .models import Project
+from accounts.models import Profile
 
 
 class CreateProjectView(LoginRequiredMixin, TemplateView):
@@ -11,12 +12,20 @@ class CreateProjectView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        project = Project.objects.filter(
-            user=self.request.user,
-            is_active=True,
-        ).order_by("-id").first()
+        project = (
+            Project.objects.filter(
+                user=self.request.user,
+                is_active=True,
+            )
+            .order_by("-id")
+            .first()
+        )
 
         context["project"] = project
+
+        profile = Profile.objects.filter(user=self.request.user).first()
+
+        context["profile"] = profile
 
         return context
 
@@ -24,10 +33,14 @@ class CreateProjectView(LoginRequiredMixin, TemplateView):
         team_details = request.POST.get("team_details", "")
         requirements_details = request.POST.get("requirements_details", "")
 
-        project = Project.objects.filter(
-            user=request.user,
-            is_active=True,
-        ).order_by("-id").first()
+        project = (
+            Project.objects.filter(
+                user=request.user,
+                is_active=True,
+            )
+            .order_by("-id")
+            .first()
+        )
 
         if project:
             project.team_details = team_details
@@ -40,6 +53,4 @@ class CreateProjectView(LoginRequiredMixin, TemplateView):
                 requirements_details=requirements_details,
             )
 
-        return self.render_to_response(
-            self.get_context_data()
-        )
+        return self.render_to_response(self.get_context_data())
