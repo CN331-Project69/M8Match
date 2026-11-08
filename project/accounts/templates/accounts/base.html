@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{% block title %}M8Match{% endblock %}</title>
+
+    <!-- Bootstrap 5 -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <style>
+        /* พื้นหลังหลักโทนครีมและชมพู */
+        body {
+            min-height: 100vh;
+            margin: 0;
+            color: #263b4a;
+            background:
+                radial-gradient(ellipse at 15% 25%, #fff1cf 0%, transparent 45%),
+                radial-gradient(ellipse at 80% 35%, #f5b4dc 0%, transparent 50%),
+                linear-gradient(120deg, #fff8e9, #f9d9ed, #f2b5db);
+            background-attachment: fixed;
+            font-family: Arial, sans-serif;
+        }
+
+        /* โครงสร้างหน้าเว็บ */
+        .site-wrapper {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Navbar */
+        .site-navbar {
+            background: rgba(255, 248, 244, 0.88);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 0 0 18px 18px;
+            box-shadow: 0 2px 8px rgba(120, 70, 100, 0.08);
+            padding: 10px 24px;
+        }
+
+        .site-brand {
+            color: #d63391 !important;
+            font-size: 25px;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .site-nav-link {
+            color: #263b4a !important;
+            font-weight: 600;
+            margin-left: 12px;
+        }
+
+        .site-nav-link:hover,
+        .site-nav-link.active {
+            color: #d63391 !important;
+        }
+
+        /* พื้นที่เนื้อหา */
+        .site-main {
+            flex: 1;
+            width: 100%;
+            padding-top: 18px;
+            padding-bottom: 30px;
+        }
+
+        /* Footer */
+        .site-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 12px 24px;
+            background: rgba(255, 235, 244, 0.78);
+            border-top: 2px solid rgba(214, 51, 145, 0.25);
+            color: #263b4a;
+        }
+
+        .site-footer a {
+            color: #263b4a;
+            text-decoration: none;
+            margin-left: 12px;
+            font-size: 13px;
+        }
+
+        .site-footer a:hover {
+            color: #d63391;
+        }
+
+        /* ปรับการแสดงผลบนมือถือ */
+        @media (max-width: 576px) {
+            .site-navbar {
+                padding: 8px 14px;
+            }
+
+            .site-brand {
+                font-size: 21px;
+            }
+
+            .site-footer {
+                padding: 12px 15px;
+            }
+        }
+
+        /* ================================
+        Guest Login Modal
+        ================================ */
+
+        .guest-login-modal[hidden] {
+            display: none !important;
+        }
+
+        .guest-login-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .guest-login-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(30, 25, 35, 0.55);
+            backdrop-filter: blur(3px);
+        }
+
+        .guest-login-content {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 380px;
+            padding: 32px 26px;
+            border-radius: 20px;
+            background: #fffaf7;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+            text-align: center;
+        }
+
+        .guest-login-content h3 {
+            margin-bottom: 12px;
+            color: #493b4b;
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .guest-login-content p {
+            margin-bottom: 24px;
+            color: #766977;
+            font-size: 14px;
+        }
+
+        .guest-login-close {
+            position: absolute;
+            top: 10px;
+            right: 14px;
+            border: none;
+            background: transparent;
+            color: #8b7c89;
+            font-size: 26px;
+            cursor: pointer;
+        }
+
+        .guest-login-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .guest-login-button,
+        .guest-register-button {
+            display: block;
+            padding: 11px 18px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .guest-login-button {
+            background: #d99bb5;
+            color: white;
+        }
+
+        .guest-login-button:hover {
+            background: #c982a1;
+            color: white;
+        }
+
+        .guest-register-button {
+            border: 1px solid #d9b6c5;
+            color: #9b6480;
+            background: white;
+        }
+
+        .guest-register-button:hover {
+            background: #fff0f5;
+            color: #9b6480;
+        }
+
+        .guest-login-trigger {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font: inherit;
+        }
+
+        /* แก้ไอคอน Like ของ Guest */
+        .guest-login-trigger .post-action-icon {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            min-width: 18px;
+            flex-shrink: 0;
+            vertical-align: middle;
+        }
+
+        .guest-login-trigger {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+<div class="site-wrapper">
+
+    <!-- Navbar หลักของเว็บไซต์ -->
+    <nav class="navbar navbar-expand-lg site-navbar">
+        <div class="container-fluid">
+
+            <a class="navbar-brand site-brand" href="{% url 'home' %}">
+                M8Match
+            </a>
+
+            <button
+                class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#mainNavbar"
+                aria-controls="mainNavbar"
+                aria-expanded="false"
+                aria-label="Toggle navigation"
+            >
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse justify-content-end" id="mainNavbar">
+                <ul class="navbar-nav align-items-lg-center">
+
+                    <li class="nav-item">
+                        <a class="nav-link site-nav-link" href="{% url 'board:board' %}">
+                            Board
+                        </a>
+                    </li>
+
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- เนื้อหาของแต่ละหน้า -->
+    <main class="site-main">
+        <div class="container-fluid px-3 px-md-4">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div>
+            <strong>☺ &nbsp; It's better together!</strong>
+        </div>
+
+        <div>
+            <a href="#">About Us</a>
+            <a href="#">Contact</a>
+        </div>
+    </footer>
+
+</div>
+
+<!-- Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+{% block extra_js %}{% endblock %}
+
+</body>
+</html>

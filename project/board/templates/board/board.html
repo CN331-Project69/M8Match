@@ -1,0 +1,598 @@
+
+{% extends "accounts/base.html" %}
+{% block title %}Board | M8Match{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+    --pink:#d63391; --pink-dark:#bd287e; --pink-pale:#fce7f3;
+    --cream:#fff8e9; --text:#263b4a; --muted:#788692;
+    --line:#f0e3eb; --shadow:0 12px 32px rgba(92,54,79,.09);
+}
+.board-page {
+    min-height:100vh; padding:35px 0 65px; color:var(--text);
+    background:
+        radial-gradient(circle at 8% 10%,rgba(255,226,183,.65),transparent 30%),
+        radial-gradient(circle at 90% 18%,rgba(242,181,219,.55),transparent 32%),
+        linear-gradient(135deg,#fff8e9,#fceaf2 50%,#f2eafa);
+}
+.board-wrap { width:min(1180px,94%); margin:auto; }
+.board-hero,.toolbar,.sidebar-card,.post-card {
+    border:1px solid rgba(255,255,255,.9);
+    background:rgba(255,255,255,.91); box-shadow:var(--shadow);
+}
+.board-hero {
+    position:relative; overflow:hidden; padding:42px;
+    border-radius:27px; margin-bottom:25px;
+}
+.board-hero:after {
+    content:""; position:absolute; width:220px; height:220px;
+    right:-55px; top:-100px; border-radius:50%;
+    background:rgba(242,181,219,.25);
+}
+.hero-inner { position:relative; z-index:1; max-width:700px; }
+.hero-label {
+    display:inline-block; padding:7px 14px; border-radius:30px;
+    color:var(--pink-dark); background:var(--pink-pale);
+    font-size:.76rem; font-weight:800; letter-spacing:1px;
+}
+.board-hero h1 { margin:15px 0 10px; font-size:clamp(2rem,5vw,3rem); font-weight:850; }
+.board-hero p { color:var(--muted); line-height:1.7; margin:0; }
+.hero-buttons { display:flex; flex-wrap:wrap; gap:10px; margin-top:23px; }
+
+.b-btn {
+    display:inline-flex; justify-content:center; align-items:center; gap:8px;
+    padding:10px 18px; min-height:42px; border:0; border-radius:12px;
+    font-weight:750; text-decoration:none; cursor:pointer; transition:.2s;
+}
+.b-btn:hover { transform:translateY(-2px); }
+.b-primary { color:#fff; background:linear-gradient(135deg,#e64b9e,#c72d85); }
+.b-primary:hover { color:#fff; background:var(--pink-dark); }
+.b-light { color:var(--text); background:#fff; border:1px solid var(--line); }
+.b-light:hover { color:var(--pink-dark); background:#fff5fa; }
+
+.board-grid { display:grid; grid-template-columns:minmax(0,1fr) 280px; gap:23px; align-items:start; }
+.board-main { min-width:0; }
+.toolbar { padding:19px; border-radius:19px; margin-bottom:23px; }
+.toolbar h2 { font-size:1rem; font-weight:850; margin:0 0 13px; }
+.search-row { display:grid; grid-template-columns:1fr auto; gap:9px; }
+.b-input,.b-select {
+    width:100%; min-height:44px; padding:10px 13px;
+    border:1px solid #eadce5; border-radius:11px;
+    color:var(--text); background:#fff; outline:none;
+}
+.b-input:focus,.b-select:focus,.panel-textarea:focus {
+    border-color:#e58abb; box-shadow:0 0 0 3px rgba(214,51,145,.09);
+}
+.filter-row { display:grid; grid-template-columns:1fr auto auto; gap:9px; margin-top:10px; }
+.section-heading { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+.section-heading h2 { margin:0; font-size:1.35rem; font-weight:850; }
+.section-heading span { color:var(--muted); font-size:.85rem; }
+
+.post-card { overflow:hidden; border-radius:20px; margin-bottom:18px; }
+.post-body { padding:21px; }
+.author-row { display:flex; align-items:center; gap:11px; margin-bottom:16px; }
+.avatar {
+    width:44px; height:44px; flex:0 0 44px; overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+    border-radius:50%; background:var(--pink-pale); color:var(--pink-dark); font-weight:800;
+}
+.avatar img { width:100%; height:100%; object-fit:cover; }
+.author-name { color:var(--text); font-weight:800; text-decoration:none; }
+.author-name:hover { color:var(--pink); }
+.post-meta { color:var(--muted); font-size:.78rem; margin-top:3px; }
+.edited { color:var(--pink-dark); }
+.post-title { font-size:1.2rem; font-weight:850; line-height:1.45; margin:0 0 9px; overflow-wrap:anywhere; }
+.post-content { color:#64727d; line-height:1.75; white-space:pre-line; overflow-wrap:anywhere; margin:0; }
+.read-more { display:inline-block; color:var(--pink-dark); font-size:.85rem; font-weight:750; margin-top:7px; }
+.post-images { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; margin-top:16px; }
+.post-images img { width:100%; aspect-ratio:4/3; max-height:260px; object-fit:cover; border-radius:12px; }
+
+.post-actions {
+    display:flex; align-items:center; flex-wrap:wrap; gap:8px;
+    padding-top:15px; margin-top:17px; border-top:1px solid var(--line);
+}
+.action-btn {
+    display:inline-flex; align-items:center; justify-content:center; gap:7px;
+    padding:8px 12px; min-height:37px; border:1px solid var(--line);
+    border-radius:10px; background:#fffafd; color:#66747e;
+    font-size:.85rem; font-weight:750; cursor:pointer; text-decoration:none;
+}
+.action-btn:hover { color:var(--pink-dark); background:#fff3f9; border-color:#edb6d4; }
+.action-btn.liked { color:var(--pink-dark); background:#fff0f7; border-color:#f3c4dc; }
+.action-btn svg { width:18px; height:18px; display:block; }
+.action-btn.report { margin-left:auto; color:#9a777f; }
+.post-manage { display:flex; gap:7px; margin-left:auto; }
+.post-manage a { padding:7px 10px; border-radius:9px; background:#f7f4f7; color:#66747e; text-decoration:none; font-size:.8rem; font-weight:750; }
+.post-manage a:hover { color:var(--pink-dark); background:var(--pink-pale); }
+
+/* แยก Panel แต่ละประเภท ไม่ใช้กล่องเดียวกัน */
+.interaction-panel {
+    display:none; padding:19px 21px 21px;
+    border-top:1px solid var(--line); background:#fffafd;
+}
+.interaction-panel.open { display:block; }
+.panel-heading { font-weight:850; margin:0 0 13px; }
+.panel-textarea {
+    width:100%; min-height:85px; padding:11px 13px;
+    border:1px solid #eadce5; border-radius:11px;
+    outline:none; resize:vertical;
+}
+.comment-list { display:grid; gap:10px; margin-bottom:14px; }
+.comment-item { padding:12px; border-radius:12px; background:#f8f3f7; }
+.comment-item strong { display:block; color:var(--text); font-size:.86rem; margin-bottom:5px; }
+.comment-item p { margin:0; color:#66747e; white-space:pre-line; overflow-wrap:anywhere; font-size:.9rem; }
+.comment-report-toggle { margin-top:9px; }
+.report-box { padding:14px; border-radius:13px; background:#fff3f5; }
+.report-box label { display:block; margin-bottom:8px; color:#855b68; font-weight:750; font-size:.86rem; }
+.comment-form button,.report-form button { margin-top:9px; }
+.sidebar { position:sticky; top:20px; display:grid; gap:15px; }
+.sidebar-card { padding:20px; border-radius:19px; }
+.sidebar-icon { width:43px; height:43px; display:grid; place-items:center; border-radius:13px; color:var(--pink-dark); background:var(--pink-pale); margin-bottom:13px; font-size:1.2rem; }
+.sidebar-card h3 { margin:0 0 8px; font-size:1.05rem; font-weight:850; }
+.sidebar-card p { color:var(--muted); font-size:.87rem; line-height:1.65; margin:0 0 14px; }
+.sidebar-links { display:grid; gap:8px; }
+.sidebar-links a { display:flex; justify-content:space-between; padding:10px 12px; border-radius:10px; color:var(--text); background:#fff8fc; text-decoration:none; font-size:.88rem; font-weight:750; }
+.sidebar-links a:hover { color:var(--pink-dark); background:var(--pink-pale); }
+
+.empty-board { padding:45px 20px; border:1px dashed #e9c5d9; border-radius:20px; background:rgba(255,255,255,.75); text-align:center; }
+.empty-board h3 { font-weight:850; }
+.empty-board p { color:var(--muted); }
+.pagination { display:flex; flex-wrap:wrap; justify-content:center; gap:7px; margin-top:24px; }
+.pagination a,.pagination span { min-width:38px; padding:9px 12px; text-align:center; border:1px solid var(--line); border-radius:9px; background:#fff; color:var(--text); text-decoration:none; }
+.pagination .current { background:var(--pink); color:white; }
+@media(max-width:900px) { .board-grid { grid-template-columns:1fr; } .sidebar { position:static; grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:600px) {
+    .board-hero { padding:27px 22px; }
+    .search-row { grid-template-columns:1fr; }
+    .filter-row { grid-template-columns:1fr 1fr; }
+    .filter-row .b-select { grid-column:1/-1; }
+    .post-body { padding:16px; }
+    .post-images { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .sidebar { grid-template-columns:1fr; }
+    .post-manage { margin-left:0; }
+    .action-btn.report { margin-left:0; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="board-page">
+<div class="board-wrap">
+
+    <header class="board-hero">
+        <div class="hero-inner">
+            <span class="hero-label">M8MATCH COMMUNITY</span>
+            <h1>Find Your Team.</h1>
+            <p>Connect with people who share your ambition. Discover opportunities, share your ideas, and find teammates for your next challenge.</p>
+            <div class="hero-buttons">
+                {% if user.is_authenticated %}
+                    <a class="b-btn b-primary" href="{% url 'board:create_post' %}">＋ Create Post</a>
+                    <a class="b-btn b-light" href="{% url 'board:my_posts' %}">My Posts</a>
+                {% else %}
+                    <button class="b-btn b-primary" data-guest-action>＋ Create Post</button>
+                    <button class="b-btn b-light" data-guest-action>My Posts</button>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <div class="board-grid">
+    <main class="board-main">
+
+        <section class="toolbar">
+            <h2>Explore opportunities</h2>
+            <form method="GET" action="{% url 'board:board' %}">
+                <div class="search-row">
+                    <input class="b-input" type="text" name="q"
+                           value="{{ search_query }}" placeholder="Search posts, competitions, or ideas...">
+                    <button class="b-btn b-primary" type="submit">Search</button>
+                </div>
+                <div class="filter-row">
+                    <select class="b-select" name="category" multiple size="3" aria-label="Filter by category">
+                        {% for category in categories %}
+                        <option value="{{ category.id }}" {% if category.id|stringformat:"s" in selected_categories %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <button class="b-btn b-light" type="submit">Apply Filter</button>
+                    <a class="b-btn b-light" href="{% url 'board:board' %}">Clear</a>
+                </div>
+                <small class="text-muted d-block mt-2">You can select more than one category.</small>
+            </form>
+        </section>
+
+        <div class="section-heading">
+            <h2>Latest Posts</h2>
+            <span>Find your next teammate</span>
+        </div>
+
+        {% for post in posts %}
+        <article class="post-card" id="post-{{ post.id }}">
+            <div class="post-body">
+                <div class="author-row">
+                    <div class="avatar">
+                        {% if post.author_picture %}
+                            <img src="{{ post.author_picture }}" alt="{{ post.author_name }}">
+                        {% else %}
+                            {{ post.author_name|first|upper }}
+                        {% endif %}
+                    </div>
+                    <div>
+                        {% if post.author_profile_url %}
+                            <a class="author-name" href="{{ post.author_profile_url }}">{{ post.author_name }}</a>
+                        {% else %}
+                            <span class="author-name">{{ post.author_name }}</span>
+                        {% endif %}
+                        <div class="post-meta">
+                            {{ post.created_at|date:"M d, Y · H:i" }}
+                            {% if post.is_edited %}<span class="edited"> · Edited</span>{% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="post-title">{{ post.title }}</h3>
+                <p class="post-content">{{ post.content }}</p>
+                {% if post.is_truncated %}<span class="read-more">Sign in to read the full post.</span>{% endif %}
+
+                {% if post.images %}
+                <div class="post-images">
+                    {% for image in post.images %}
+                        {% if image.image %}<img src="{{ image.image.url }}" alt="Post image">{% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="post-actions">
+                    {% if user.is_authenticated %}
+                    <form method="POST" action="{% url 'board:toggle_like' post.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <button class="action-btn {% if post.is_liked %}liked{% endif %}" type="submit">
+                            <svg viewBox="0 0 24 24" fill="{% if post.is_liked %}currentColor{% else %}none{% endif %}"
+                                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Like">
+                                <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8z"/>
+                            </svg>
+                            {% if post.is_liked %}Liked{% else %}Like{% endif %}
+                            {% if post.like_count %}<span>({{ post.like_count }})</span>{% endif %}
+                        </button>
+                    </form>
+                    <button type="button" class="action-btn comment-toggle" data-post-id="{{ post.id }}">
+                        Comment {% if post.comment_count %}<span>({{ post.comment_count }})</span>{% endif %}
+                    </button>
+                    {% else %}
+                    <button type="button" class="action-btn" data-guest-action>♡ Like {% if post.like_count %}({{ post.like_count }}){% endif %}</button>
+                    <button type="button" class="action-btn" data-guest-action>Comment {% if post.comment_count %}({{ post.comment_count }}){% endif %}</button>
+                    {% endif %}
+
+                    {% if post.is_owner %}
+                    <div class="post-manage">
+                        <a href="{% url 'board:edit_post' post.id %}">Edit</a>
+                        <a href="{% url 'board:delete_post' post.id %}">Delete</a>
+                    </div>
+                    {% elif user.is_authenticated %}
+                    <button type="button" class="action-btn report report-toggle" data-post-id="{{ post.id }}">Report</button>
+                    {% else %}
+                    <button type="button" class="action-btn report" data-guest-action>Report</button>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if user.is_authenticated %}
+            <!-- Comment Panel -->
+            <section class="interaction-panel comment-panel" id="comment-panel-{{ post.id }}">
+                <h4 class="panel-heading">Comments</h4>
+                <div class="comment-list" id="comment-list-{{ post.id }}">
+                    <p class="text-muted small">Loading comments...</p>
+                </div>
+                <form class="comment-form" data-post-id="{{ post.id }}"
+                      data-url="{% url 'board:create_comment' post.id %}">
+                    {% csrf_token %}
+                    <textarea class="panel-textarea" name="content" maxlength="2000"
+                              placeholder="Write a comment..." required></textarea>
+                    <button type="submit" class="b-btn b-primary">Send Comment</button>
+                </form>
+            </section>
+
+            <!-- Report Post Panel -->
+            {% if not post.is_owner %}
+            <section class="interaction-panel report-panel" id="report-panel-{{ post.id }}">
+                <h4 class="panel-heading">Report this post</h4>
+                <div class="report-box">
+                    <form class="report-form" data-url="{% url 'board:report_post' post.id %}">
+                        {% csrf_token %}
+                        <label>Why are you reporting this post?</label>
+                        <textarea class="panel-textarea" name="reason" maxlength="1000"
+                                  placeholder="Describe the reason..." required></textarea>
+                        <button type="submit" class="b-btn b-light">Submit Report</button>
+                    </form>
+                </div>
+            </section>
+            {% endif %}
+            {% endif %}
+        </article>
+        {% empty %}
+        <div class="empty-board">
+            <div style="font-size:2rem;color:var(--pink);margin-bottom:12px;">✦</div>
+            <h3>No posts found</h3>
+            <p>There are no posts matching your search. Try another keyword or category.</p>
+            {% if user.is_authenticated %}
+                <a href="{% url 'board:create_post' %}" class="b-btn b-primary">Create the First Post</a>
+            {% else %}
+                <a href="{% url 'board:board' %}" class="b-btn b-light">Clear Search</a>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        {% if page_obj.has_other_pages %}
+        <nav class="pagination" aria-label="Post pagination">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}&q={{ search_query|urlencode }}{% for id in selected_categories %}&category={{ id }}{% endfor %}">Previous</a>
+            {% endif %}
+            {% for number in page_obj.paginator.page_range %}
+                {% if page_obj.number == number %}
+                    <span class="current">{{ number }}</span>
+                {% else %}
+                    <a href="?page={{ number }}&q={{ search_query|urlencode }}{% for id in selected_categories %}&category={{ id }}{% endfor %}">{{ number }}</a>
+                {% endif %}
+            {% endfor %}
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}&q={{ search_query|urlencode }}{% for id in selected_categories %}&category={{ id }}{% endfor %}">Next</a>
+            {% endif %}
+        </nav>
+        {% endif %}
+    </main>
+
+    <aside class="sidebar">
+        <section class="sidebar-card">
+            <div class="sidebar-icon">✧</div>
+            <h3>Have an idea?</h3>
+            <p>Share your competition, project, or team opportunity. The right teammate might be looking for you.</p>
+            {% if user.is_authenticated %}
+                <a href="{% url 'board:create_post' %}" class="b-btn b-primary w-100">Create a Post</a>
+            {% else %}
+                <button class="b-btn b-primary w-100" data-guest-action>Create a Post</button>
+            {% endif %}
+        </section>
+        <section class="sidebar-card">
+            <h3>Your Board</h3>
+            <p>Keep track of your posts and opportunities you like.</p>
+            <div class="sidebar-links">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'board:my_posts' %}">My Posts <span>→</span></a>
+                    <a href="{% url 'board:my_posts' %}?tab=likes">My Likes <span>→</span></a>
+                {% else %}
+                    <a href="#" data-guest-action>My Posts <span>→</span></a>
+                    <a href="#" data-guest-action>My Likes <span>→</span></a>
+                {% endif %}
+            </div>
+        </section>
+    </aside>
+    </div>
+</div>
+</div>
+
+{% if not user.is_authenticated %}
+<div class="modal fade" id="guestLoginModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border:0;border-radius:20px;overflow:hidden;">
+            <div class="modal-header" style="background:#fff1f8;border:0;">
+                <h5 class="modal-title fw-bold">Join M8Match</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center p-4">
+                <h5 class="fw-bold">Find your people.</h5>
+                <p class="text-muted">Sign in or create an account to interact with posts and find teammates.</p>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'accounts:login' %}" class="b-btn b-primary">Log In</a>
+                    <a href="{% url 'accounts:register' %}" class="b-btn b-light">Create Account</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if user.is_authenticated %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const csrf = document.querySelector("input[name='csrfmiddlewaretoken']")?.value;
+
+    // ปิด Panel ทุกอันของโพสต์เดียวกันก่อน แล้วค่อยเปิดอันที่กด
+    function togglePanel(postId, target) {
+        const card = document.getElementById("post-" + postId);
+        if (!card) return false;
+
+        const wasOpen = target.classList.contains("open");
+        card.querySelectorAll(".interaction-panel").forEach(panel => panel.classList.remove("open"));
+
+        if (!wasOpen) target.classList.add("open");
+        return !wasOpen;
+    }
+
+    // โหลดและแสดงคอมเมนต์
+    document.querySelectorAll(".comment-toggle").forEach(button => {
+        button.addEventListener("click", async function () {
+            const id = this.dataset.postId;
+            const panel = document.getElementById("comment-panel-" + id);
+            const list = document.getElementById("comment-list-" + id);
+            if (!panel || !list) return;
+
+            const opened = togglePanel(id, panel);
+            if (!opened || panel.dataset.loaded === "true") return;
+
+            try {
+                const url = "{% url 'board:post_comments' 0 %}".replace("/0/", "/" + id + "/");
+                const response = await fetch(url);
+                if (!response.ok) throw new Error();
+
+                const data = await response.json();
+                const comments = data.comments || [];
+                list.innerHTML = "";
+
+                if (comments.length === 0) {
+                    const empty = document.createElement("p");
+                    empty.className = "text-muted small";
+                    empty.textContent = "No comments yet. Be the first to comment!";
+                    list.appendChild(empty);
+                }
+
+                comments.forEach(comment => {
+                    const item = document.createElement("div");
+                    item.className = "comment-item";
+
+                    const author = document.createElement("strong");
+                    author.textContent = comment.author_name;
+
+                    const content = document.createElement("p");
+                    content.textContent = comment.content;
+
+                    item.append(author, content);
+
+                    // ไม่ให้ผู้เขียนคอมเมนต์รายงานคอมเมนต์ตัวเอง
+                    if (String(comment.author_id || "") !== String("{{ request.user.id }}")) {
+                        const reportButton = document.createElement("button");
+                        reportButton.type = "button";
+                        reportButton.className = "action-btn comment-report-toggle";
+                        reportButton.textContent = "Report comment";
+
+                        reportButton.addEventListener("click", function () {
+                            const oldForm = item.querySelector(".comment-report-form");
+                            if (oldForm) {
+                                oldForm.remove();
+                                return;
+                            }
+
+                            const form = document.createElement("form");
+                            form.className = "report-form comment-report-form report-box";
+                            form.dataset.url = "{% url 'board:report_comment' 0 %}".replace("/0/", "/" + comment.id + "/");
+
+                            const token = document.createElement("input");
+                            token.type = "hidden";
+                            token.name = "csrfmiddlewaretoken";
+                            token.value = csrf || "";
+
+                            const label = document.createElement("label");
+                            label.textContent = "Why are you reporting this comment?";
+
+                            const textarea = document.createElement("textarea");
+                            textarea.className = "panel-textarea";
+                            textarea.name = "reason";
+                            textarea.maxLength = 1000;
+                            textarea.required = true;
+                            textarea.placeholder = "Describe the reason...";
+
+                            const submit = document.createElement("button");
+                            submit.type = "submit";
+                            submit.className = "b-btn b-light";
+                            submit.textContent = "Submit Report";
+
+                            form.append(token, label, textarea, submit);
+                            item.appendChild(form);
+                        });
+
+                        item.appendChild(reportButton);
+                    }
+
+                    list.appendChild(item);
+                });
+
+                panel.dataset.loaded = "true";
+            } catch (error) {
+                list.textContent = "Could not load comments. Please try again.";
+            }
+        });
+    });
+
+    // ปุ่ม Report Post
+    document.querySelectorAll(".report-toggle").forEach(button => {
+        button.addEventListener("click", function () {
+            const id = this.dataset.postId;
+            const panel = document.getElementById("report-panel-" + id);
+            if (panel) togglePanel(id, panel);
+        });
+    });
+
+    // ส่ง Comment
+    document.querySelectorAll(".comment-form").forEach(form => {
+        form.addEventListener("submit", async function (event) {
+            event.preventDefault();
+            const textarea = this.querySelector("[name='content']");
+            const button = this.querySelector("button[type='submit']");
+            const content = textarea.value.trim();
+            if (!content) return;
+
+            button.disabled = true;
+            try {
+                const response = await fetch(this.dataset.url, {
+                    method:"POST",
+                    headers:{"X-CSRFToken":csrf,"X-Requested-With":"XMLHttpRequest"},
+                    body:new URLSearchParams({content})
+                });
+                if (!response.ok) {
+                    const data = await response.json().catch(() => ({}));
+                    throw new Error(data.error || "Could not submit comment.");
+                }
+                window.location.reload();
+            } catch (error) {
+                alert(error.message);
+                button.disabled = false;
+            }
+        });
+    });
+
+    // ส่ง Report Post และ Report Comment
+    document.addEventListener("submit", async function (event) {
+        const form = event.target;
+        if (!form.matches(".report-form")) return;
+        event.preventDefault();
+
+        const textarea = form.querySelector("[name='reason']");
+        const button = form.querySelector("button[type='submit']");
+        const reason = textarea.value.trim();
+        if (!reason) return;
+
+        button.disabled = true;
+        try {
+            const response = await fetch(form.dataset.url, {
+                method:"POST",
+                headers:{"X-CSRFToken":csrf,"X-Requested-With":"XMLHttpRequest"},
+                body:new URLSearchParams({reason})
+            });
+            if (!response.ok) {
+                const data = await response.json().catch(() => ({}));
+                throw new Error(data.error || "Could not submit report.");
+            }
+
+            alert("Your report has been submitted.");
+            if (form.classList.contains("comment-report-form")) {
+                form.remove();
+            } else {
+                const panel = form.closest(".interaction-panel");
+                if (panel) panel.classList.remove("open");
+                form.reset();
+            }
+        } catch (error) {
+            alert(error.message);
+            button.disabled = false;
+        }
+    });
+});
+</script>
+{% endif %}
+
+{% if not user.is_authenticated %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const modal = document.getElementById("guestLoginModal");
+    document.querySelectorAll("[data-guest-action]").forEach(button => {
+        button.addEventListener("click", function (event) {
+            event.preventDefault();
+            if (modal && window.bootstrap) bootstrap.Modal.getOrCreateInstance(modal).show();
+        });
+    });
+});
+</script>
+{% endif %}
+{% endblock %}
