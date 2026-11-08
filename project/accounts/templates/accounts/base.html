@@ -265,6 +265,14 @@
                         </a>
                     </li>
 
+                    {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link site-nav-link" href="{% url 'profile_detail' %}">
+                            Profile
+                        </a>
+                    </li>
+                    {% endif %}
+
                 </ul>
             </div>
         </div>

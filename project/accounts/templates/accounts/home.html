@@ -9,7 +9,7 @@
     {% if user.is_authenticated %}
         <nav class="top-nav d-flex align-items-center gap-3">
             <a href="{% url 'profile_detail' %}" class="btn btn-m8 btn-m8-sm btn-m8-register">Profile</a>
-            <a href="#" class="btn btn-m8 btn-m8-sm btn-m8-register">Chat</a>
+            <a href="{% url 'chat:inbox' %}" class="btn btn-m8 btn-m8-sm btn-m8-register">Chat</a>
             <a href="{% url 'board:board' %}" class="btn btn-m8 btn-m8-sm btn-m8-register">Board</a>
             <form method="post" action="{% url 'logout' %}" class="m-0">
                 {% csrf_token %}
