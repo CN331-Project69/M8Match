@@ -25,14 +25,22 @@
             <div class="flex-grow-1 min-w-0">
                 <h1 class="profile-name mb-1">{{ shown_name }}</h1>
                 <p class="profile-handle mb-1">@{{ profile.user.username }}</p>
-                {% if profile.user.email %}
+                {% if is_own_profile and profile.user.email %}
                     <p class="profile-handle mb-0">{{ profile.user.email }}</p>
                 {% endif %}
             </div>
 
-            <a href="{% url 'edit_profile' %}" class="btn btn-m8 btn-m8-sm btn-m8-login align-self-md-start">
-                Edit Profile
-            </a>
+            {% if is_own_profile %}
+                <a href="{% url 'edit_profile' %}" class="btn btn-m8 btn-m8-sm btn-m8-login align-self-md-start">
+                    Edit Profile
+                </a>
+            {% else %}
+                <!-- เปิดห้องแชทกับคนนี้ (ใช้ห้องเดิมถ้ามีอยู่แล้ว) -->
+                <form method="post" action="{% url 'chat:start' profile.user.id %}" class="m-0 align-self-md-start">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-m8 btn-m8-sm btn-m8-login">Message</button>
+                </form>
+            {% endif %}
         </div>
 
         <div class="profile-section">
@@ -40,7 +48,11 @@
             {% if profile.about_me %}
                 <p class="profile-about mb-0">{{ profile.about_me }}</p>
             {% else %}
-                <p class="profile-about profile-empty mb-0">Tell your future teammates who you are. <a href="{% url 'edit_profile' %}">Add an intro</a></p>
+                {% if is_own_profile %}
+                    <p class="profile-about profile-empty mb-0">Tell your future teammates who you are. <a href="{% url 'edit_profile' %}">Add an intro</a></p>
+                {% else %}
+                    <p class="profile-about profile-empty mb-0">No introduction yet.</p>
+                {% endif %}
             {% endif %}
         </div>
 
@@ -54,9 +66,13 @@
                         {% endfor %}
                     </ul>
                 {% else %}
-                    <p class="profile-empty mb-0">
-                        Enter your skills so others can see what you're made of! <a href="{% url 'edit_profile' %}">Add skills</a>
-                    </p>
+                    {% if is_own_profile %}
+                        <p class="profile-empty mb-0">
+                            Enter your skills so others can see what you're made of! <a href="{% url 'edit_profile' %}">Add skills</a>
+                        </p>
+                    {% else %}
+                        <p class="profile-empty mb-0">No skills added yet.</p>
+                    {% endif %}
                 {% endif %}
             {% endwith %}
         </div>
