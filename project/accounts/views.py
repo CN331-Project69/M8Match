@@ -60,3 +60,30 @@ class ProfileDetailView(LoginRequiredMixin, DetailView):
     def get_object(self, queryset=None):
         profile, _ = Profile.objects.get_or_create(user=self.request.user)
         return profile
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["is_own_profile"] = True
+        return ctx
+
+
+class UserProfileView(ProfileDetailView):
+    """ดูโปรไฟล์ของคนอื่น (อ่านอย่างเดียว) มีปุ่ม Message ไปหน้าแชท"""
+
+    def get(self, request, *args, **kwargs):
+        # เปิดโปรไฟล์ตัวเองผ่านลิงก์นี้ -> ไปหน้าโปรไฟล์ของตัวเองที่แก้ไขได้
+        if kwargs["username"] == request.user.get_username():
+            return redirect("profile_detail")
+        return super().get(request, *args, **kwargs)
+
+    def get_object(self, queryset=None):
+        user = get_object_or_404(
+            get_user_model(), username=self.kwargs["username"], is_active=True
+        )
+        profile, _ = Profile.objects.get_or_create(user=user)
+        return profile
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["is_own_profile"] = False
+        return ctx

@@ -132,6 +132,53 @@
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .contact .info { min-width: 0; flex: 1; }
+    .min-w-0 { min-width: 0; }
+
+    .avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+
+    /* หัวห้องแชท: กดรูป/ชื่อเพื่อดูโปรไฟล์ (แบบ IG) */
+    .chat-header {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      margin: 0 .5rem .5rem;
+      padding: .45rem .6rem;
+      background: rgba(255, 255, 255, .55);
+      border: 1px solid rgba(240, 107, 184, .35);
+      border-radius: 14px;
+    }
+    .chat-back { color: var(--pink); font-size: 1.3rem; line-height: 1; padding: 0 .25rem; }
+    .partner-link {
+      display: flex;
+      align-items: center;
+      gap: .65rem;
+      min-width: 0;
+      flex: 1;
+      color: inherit;
+      text-decoration: none;
+      border-radius: 10px;
+      padding: .15rem .35rem;
+    }
+    .partner-link:hover .partner-name { color: var(--pink); }
+    .partner-link:focus-visible,
+    .partner-info:focus-visible { outline: 3px solid var(--navy); outline-offset: 2px; }
+    .partner-link .avatar { width: 40px; height: 40px; font-size: 1.1rem; }
+    .partner-name { font-weight: 700; font-size: 1.05rem; line-height: 1.1; }
+    .partner-sub { font-size: .8rem; color: #666; }
+    .partner-name,
+    .partner-sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .partner-info {
+      flex: none;
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      color: var(--navy);
+      font-size: 1.35rem;
+      text-decoration: none;
+    }
+    .partner-info:hover { background: #fce4ec; color: var(--pink); }
 
     /* Chat */
     .chat-col { height: 100%; display: flex; flex-direction: column; }
@@ -229,7 +276,7 @@
             {% for conv in sidebar_conversations %}
               <a href="{% url 'chat:room' conv.id %}" class="contact-link" data-conv-id="{{ conv.id }}">
                 <div class="contact {% if conv.is_active %}active{% endif %}">
-                  <div class="avatar">{{ conv.initial }}</div>
+                  <div class="avatar">{% if conv.picture %}<img src="{{ conv.picture }}" alt="">{% else %}{{ conv.initial }}{% endif %}</div>
                   <div class="info">
                     <div class="name">{{ conv.other_user }}</div>
                     <div class="preview">"{{ conv.last_message }}"</div>
@@ -250,12 +297,31 @@
       <section class="col-12 col-md-8 col-lg-9 h-100 {% if not room_id %}d-none d-md-block{% endif %}">
         {% if room_id %}
           <div class="chat-col">
-            <!-- ปุ่มย้อนกลับ (เฉพาะมือถือ) -->
-            <div class="d-md-none px-2 pb-1">
-              <a href="{% url 'chat:inbox' %}" class="text-decoration-none" style="color: var(--pink);">
-                <i class="bi bi-chevron-left"></i> แชททั้งหมด
+            <!-- หัวห้องแชท: กดรูป/ชื่อเพื่อดูโปรไฟล์ของอีกฝ่าย (แบบ IG) -->
+            <header class="chat-header">
+              <!-- ปุ่มย้อนกลับ (เฉพาะมือถือ) -->
+              <a href="{% url 'chat:inbox' %}" class="chat-back d-md-none" aria-label="แชททั้งหมด">
+                <i class="bi bi-chevron-left"></i>
               </a>
-            </div>
+
+              {% if partner.profile_url %}
+                <a href="{{ partner.profile_url }}" class="partner-link" title="ดูโปรไฟล์ของ {{ partner.name }}">
+              {% else %}
+                <div class="partner-link">
+              {% endif %}
+                  <div class="avatar">{% if partner.picture %}<img src="{{ partner.picture }}" alt="">{% else %}{{ partner.initial }}{% endif %}</div>
+                  <div class="min-w-0">
+                    <div class="partner-name">{{ partner.name }}</div>
+                    {% if partner.username %}<div class="partner-sub">@{{ partner.username }} · ดูโปรไฟล์</div>{% endif %}
+                  </div>
+              {% if partner.profile_url %}</a>{% else %}</div>{% endif %}
+
+              {% if partner.profile_url %}
+                <a href="{{ partner.profile_url }}" class="partner-info" aria-label="ดูโปรไฟล์ของ {{ partner.name }}">
+                  <i class="bi bi-info-circle"></i>
+                </a>
+              {% endif %}
+            </header>
 
             <div class="messages" id="chat-messages">
               {% for msg in messages %}
