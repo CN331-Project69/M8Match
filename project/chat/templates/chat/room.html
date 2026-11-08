@@ -198,12 +198,12 @@
 
   <!-- Navbar -->
   <header class="topbar d-flex align-items-center justify-content-between">
-    <a href="{% url 'accounts:home' %}" class="brand">M8Match</a>
+    <a href="{% url 'home' %}" class="brand">M8Match</a>
     <nav class="nav align-items-center">
-      <a class="nav-link" href="{% url 'matching:find_match' %}">Match</a>
-      <a class="nav-link" href="{% url 'board:home' %}">Board</a>
+      <a class="nav-link" href="#">Match</a>
+      <a class="nav-link" href="#">Board</a>
       <a class="nav-link active" href="{% url 'chat:inbox' %}">Chat</a>
-      <a class="nav-link" href="{% url 'accounts:profile' %}">Profile</a>
+      <a class="nav-link" href="#">Profile</a>
       <a class="nav-link" href="#">Settings</a>
       <!-- Django 5: logout ต้องเป็น POST -->
       <form method="post" action="{% url 'logout' %}" class="m-0">
