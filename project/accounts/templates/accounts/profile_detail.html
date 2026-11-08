@@ -4,9 +4,11 @@
 {% block body_class %}landing-page{% endblock %}
 
 {% block content %}
-<main class="landing profile-page container py-4 min-vh-100">
+{% include "partials/navbar.html" %}
 
-    {% include "accounts/_profile_header.html" %}
+<main class="landing profile-page container pb-5">
+
+    {% include "accounts/_profile_messages.html" %}
 
     {% firstof profile.display_name profile.user.username as shown_name %}
 

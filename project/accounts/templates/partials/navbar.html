@@ -1,0 +1,35 @@
+{% comment %}
+    Navbar กลางของทุกหน้า (โลโก้ซ้าย + เมนูขวาบน)
+
+    วิธีใช้:
+        <link rel="stylesheet" href="{% static 'css/m8-navbar.css' %}">   ใส่ใน <head>
+        {% include "partials/navbar.html" %}
+
+    ตัวเลือก (ไม่ใส่ก็ได้):
+        overlay=True     ลอยทับเนื้อหาด้านบน (หน้าที่จัดเนื้อหากลางจอ เช่น Home, Login)
+        hide_brand=True  ซ่อนโลโก้ซ้าย (หน้าที่มีโลโก้ใหญ่อยู่แล้ว)
+        active="board"   บังคับเมนูที่ไฮไลต์ (ปกติ context processor nav_section เลือกจาก URL ให้เอง)
+{% endcomment %}
+{% firstof active nav_section as current %}
+<header class="m8-navbar{% if overlay %} m8-navbar--overlay{% endif %}">
+    {% if not hide_brand %}
+        <a href="{% url 'home' %}" class="m8-navbar__brand">M8Match</a>
+    {% endif %}
+
+    <nav class="m8-navbar__links" aria-label="Main navigation">
+        {% if user.is_authenticated %}
+            <a href="{% url 'find_match' %}" class="m8-pill{% if current == 'match' %} is-active{% endif %}"{% if current == 'match' %} aria-current="page"{% endif %}>Match</a>
+            <a href="{% url 'board:board' %}" class="m8-pill{% if current == 'board' %} is-active{% endif %}"{% if current == 'board' %} aria-current="page"{% endif %}>Board</a>
+            <a href="{% url 'chat:inbox' %}" class="m8-pill{% if current == 'chat' %} is-active{% endif %}"{% if current == 'chat' %} aria-current="page"{% endif %}>Chat</a>
+            <a href="{% url 'profile_detail' %}" class="m8-pill{% if current == 'profile' %} is-active{% endif %}"{% if current == 'profile' %} aria-current="page"{% endif %}>Profile</a>
+            <form method="post" action="{% url 'logout' %}" class="m8-navbar__logout">
+                {% csrf_token %}
+                <button type="submit" class="m8-pill m8-pill--pink">Log Out</button>
+            </form>
+        {% else %}
+            <a href="{% url 'board:board' %}" class="m8-pill{% if current == 'board' %} is-active{% endif %}"{% if current == 'board' %} aria-current="page"{% endif %}>Board</a>
+            <a href="{% url 'login' %}" class="m8-pill m8-pill--pink{% if current == 'login' %} is-active{% endif %}"{% if current == 'login' %} aria-current="page"{% endif %}>Log In</a>
+            <a href="{% url 'register' %}" class="m8-pill{% if current == 'register' %} is-active{% endif %}"{% if current == 'register' %} aria-current="page"{% endif %}>Register</a>
+        {% endif %}
+    </nav>
+</header>
