@@ -80,6 +80,18 @@
 .avatar img { width:100%; height:100%; object-fit:cover; }
 .author-name { color:var(--text); font-weight:800; text-decoration:none; }
 .author-name:hover { color:var(--pink); }
+a.avatar { text-decoration:none; transition:box-shadow .15s; }
+a.avatar:hover { box-shadow:0 0 0 3px #f3c4dc; }
+.author-info { min-width:0; }
+.author-chat { margin:0 0 0 auto; }
+.author-chat .action-btn { min-height:34px; padding:6px 12px; }
+.author-name:focus-visible, a.avatar:focus-visible, .author-chat .action-btn:focus-visible,
+.comment-author:focus-visible { outline:3px solid var(--text); outline-offset:2px; }
+.comment-head { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.comment-author { color:var(--text); font-weight:800; text-decoration:none; }
+a.comment-author:hover { color:var(--pink); }
+.comment-chat { margin:0 0 0 auto; }
+.comment-chat .action-btn { min-height:30px; padding:4px 10px; font-size:.78rem; }
 .post-meta { color:var(--muted); font-size:.78rem; margin-top:3px; }
 .edited { color:var(--pink-dark); }
 .post-title { font-size:1.2rem; font-weight:850; line-height:1.45; margin:0 0 9px; overflow-wrap:anywhere; }
@@ -212,16 +224,22 @@
         <article class="post-card" id="post-{{ post.id }}">
             <div class="post-body">
                 <div class="author-row">
-                    <div class="avatar">
+                    <!-- รูป/ชื่อผู้โพสต์: กดเพื่อดูโปรไฟล์ -->
+                    {% if post.author_profile_url %}
+                        <a class="avatar" href="{{ post.author_profile_url }}" tabindex="-1" aria-hidden="true">
+                    {% else %}
+                        <div class="avatar">
+                    {% endif %}
                         {% if post.author_picture %}
                             <img src="{{ post.author_picture }}" alt="{{ post.author_name }}">
                         {% else %}
                             {{ post.author_name|first|upper }}
                         {% endif %}
-                    </div>
-                    <div>
+                    {% if post.author_profile_url %}</a>{% else %}</div>{% endif %}
+
+                    <div class="author-info">
                         {% if post.author_profile_url %}
-                            <a class="author-name" href="{{ post.author_profile_url }}">{{ post.author_name }}</a>
+                            <a class="author-name" href="{{ post.author_profile_url }}" title="View {{ post.author_name }}'s profile">{{ post.author_name }}</a>
                         {% else %}
                             <span class="author-name">{{ post.author_name }}</span>
                         {% endif %}
@@ -230,6 +248,17 @@
                             {% if post.is_edited %}<span class="edited"> · Edited</span>{% endif %}
                         </div>
                     </div>
+
+                    <!-- ปุ่มแชทกับผู้โพสต์ (เปิดห้องเดิมถ้ามีอยู่แล้ว) -->
+                    {% if post.author_chat_url %}
+                        <form method="post" action="{{ post.author_chat_url }}" class="author-chat">
+                            {% csrf_token %}
+                            <button type="submit" class="action-btn" aria-label="Message {{ post.author_name }}">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.6 8.6 0 0 1-3.8-.9L3 20.5l1.6-4.6A8.4 8.4 0 1 1 21 11.5z"/></svg>
+                                Message
+                            </button>
+                        </form>
+                    {% endif %}
                 </div>
 
                 <h3 class="post-title">{{ post.title }}</h3>
@@ -442,13 +471,46 @@ document.addEventListener("DOMContentLoaded", function () {
                     const item = document.createElement("div");
                     item.className = "comment-item";
 
-                    const author = document.createElement("strong");
+                    // ชื่อผู้คอมเมนต์: กดไปดูโปรไฟล์ได้ถ้า Adapter ส่ง author_profile_url มา
+                    const head = document.createElement("div");
+                    head.className = "comment-head";
+
+                    const author = document.createElement(comment.author_profile_url ? "a" : "strong");
+                    author.className = "comment-author";
                     author.textContent = comment.author_name;
+                    if (comment.author_profile_url) {
+                        author.href = comment.author_profile_url;
+                        author.title = "View " + comment.author_name + "'s profile";
+                    }
+                    head.appendChild(author);
+
+                    // ปุ่มแชทกับผู้คอมเมนต์ (ไม่แสดงกับคอมเมนต์ของตัวเอง)
+                    const isOwnComment = String(comment.author_id || "") === String("{{ request.user.id }}");
+                    if (comment.author_chat_url && !isOwnComment) {
+                        const chatForm = document.createElement("form");
+                        chatForm.method = "post";
+                        chatForm.action = comment.author_chat_url;
+                        chatForm.className = "comment-chat";
+
+                        const chatToken = document.createElement("input");
+                        chatToken.type = "hidden";
+                        chatToken.name = "csrfmiddlewaretoken";
+                        chatToken.value = csrf || "";
+
+                        const chatButton = document.createElement("button");
+                        chatButton.type = "submit";
+                        chatButton.className = "action-btn";
+                        chatButton.textContent = "Message";
+                        chatButton.setAttribute("aria-label", "Message " + comment.author_name);
+
+                        chatForm.append(chatToken, chatButton);
+                        head.appendChild(chatForm);
+                    }
 
                     const content = document.createElement("p");
                     content.textContent = comment.content;
 
-                    item.append(author, content);
+                    item.append(head, content);
 
                     // ไม่ให้ผู้เขียนคอมเมนต์รายงานคอมเมนต์ตัวเอง
                     if (String(comment.author_id || "") !== String("{{ request.user.id }}")) {
