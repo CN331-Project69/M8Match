@@ -1,10 +1,5 @@
-/* General */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
 
+/* General */
 body {
     font-family: Arial, sans-serif;
     color: #35485A;
@@ -19,16 +14,12 @@ body {
 
 .page-container {
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
     padding: 12px;
 }
 
+
 /* Header */
 .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     padding: 12px 20px;
     background-color: #FFF9ED;
     border: 2px solid #E9B7D1;
@@ -43,6 +34,7 @@ body {
 }
 
 .back-button {
+    display: inline-block;
     color: #35485A;
     background-color: #FCE8F1;
     padding: 9px 16px;
@@ -55,14 +47,15 @@ body {
 
 .back-button:hover {
     background-color: #F5C2D9;
+    color: #35485A;
 }
+
 
 /* Main Content */
 .main-content {
     width: 100%;
     max-width: 1400px;
     margin: 30px auto;
-    flex: 1;
 }
 
 .page-title {
@@ -80,19 +73,16 @@ body {
 }
 
 
-/* Match Grid - Stack Cards */
+/* Match Grid */
 .match-grid {
     position: relative;
     width: 100%;
     max-width: 500px;
     height: 680px;
-    margin: 0 auto;
-    display: block;
 }
 
 
-
-/* Match Card - Stacked */
+/* Match Card */
 .match-card {
     position: absolute;
     inset: 0;
@@ -111,7 +101,6 @@ body {
 }
 
 
-
 /* Profile Picture */
 .profile-picture {
     width: 90px;
@@ -121,6 +110,7 @@ body {
     border-radius: 50%;
     border: 2px solid #E9B7D1;
     background-color: #FCE8F1;
+    flex-shrink: 0;
 }
 
 .profile-picture img {
@@ -130,7 +120,6 @@ body {
     border-radius: 50%;
 }
 
-
 .no-picture {
     display: flex;
     justify-content: center;
@@ -139,11 +128,14 @@ body {
     font-size: 11px;
 }
 
+
 /* Card Content */
 .card-content {
-    padding: 24px;
+    padding: 10px 24px;
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
 }
-
 
 .card-content h2 {
     color: #C84C91;
@@ -179,13 +171,6 @@ body {
     overflow-wrap: anywhere;
 }
 
-.card-content {
-    padding: 10px 24px;
-    flex: 1;
-    overflow-y: auto;
-    min-height: 0;
-}
-
 
 /* Matching Skills */
 .skill-list {
@@ -195,82 +180,49 @@ body {
 }
 
 .skill-tag {
-    background-color: #FCE8F1;
-    color: #C84C91;
-    border: 1px solid #E9B7D1;
     padding: 7px 13px;
     border-radius: 10px;
     font-size: 13px;
+    border: 1px solid #D8DDE3;
+    background-color: #F2F4F7;
+    color: #64748B;
+    font-weight: normal;
+}
+
+.skill-tag.matched {
+    background-color: #FCE8F1;
+    color: #C84C91;
+    border: 1px solid #E9B7D1;
     font-weight: bold;
 }
 
-/* Empty State */
-.empty-state {
-    background-color: #FFF9ED;
-    border: 2px solid #E9B7D1;
-    border-radius: 16px;
-    padding: 60px 25px;
-    text-align: center;
+.skill-tag.unmatched {
+    background-color: #F2F4F7 !important;
+    color: #64748B !important;
+    border: 1px solid #D8DDE3 !important;
+    font-weight: normal;
 }
 
-.empty-state h2 {
-    color: #C84C91;
-    margin-bottom: 14px;
+
+/* Team Information Skills */
+.skill-tag.team-skill {
+    background-color: #F2F4F7;
+    color: #64748B;
+    border: 1px solid #D8DDE3;
+    font-weight: normal;
 }
 
-.empty-state p {
-    color: #35485A;
-    margin-bottom: 25px;
-    line-height: 1.7;
+
+/* Details inside each section */
+.team-section > p,
+.skills-section > p {
+    margin-top: 12px;
+    margin-bottom: 0;
 }
 
-/* Footer */
-.footer {
-    background-color: #FCE8F1;
-    border: 2px solid #E9B7D1;
-    border-radius: 10px;
-    padding: 12px 18px;
-    font-size: 13px;
-    text-align: center;
-}
-
-/* Responsive Layout */
-@media (max-width: 900px) {
-    .match-grid {
-        grid-template-columns: repeat(
-            auto-fit,
-            minmax(250px, 1fr)
-        );
-    }
-}
-
-@media (max-width: 480px) {
-    .page-container {
-        padding: 10px;
-    }
-
-    .header {
-        padding: 10px;
-    }
-
-    .logo {
-        font-size: 20px;
-    }
-
-    .page-title {
-        font-size: 24px;
-    }
-
-    .card-content {
-        padding: 18px;
-    }
-}
 
 /* Swipe Actions */
 .swipe-actions {
-    display: flex;
-    justify-content: center;
-    align-items: center;
     gap: 30px;
     padding: 20px 24px 24px;
     margin-top: auto;
@@ -281,8 +233,12 @@ body {
     z-index: 5;
 }
 
+.swipe-form {
+    flex: 1;
+}
+
 .swipe-actions button {
-    width: 155px;
+    width: 100%;
     min-height: 54px;
     padding: 14px 24px;
     border-radius: 14px;
@@ -309,9 +265,18 @@ body {
     transform: scale(1.06);
 }
 
+.pass-button:hover {
+    background-color: #F5C2D9;
+    color: #C84C91;
+}
+
+.like-button:hover {
+    background-color: #E7A936;
+    color: white;
+}
+
 
 /* Card Dragging */
-
 .match-card[data-swipe-card] {
     touch-action: pan-y;
     cursor: grab;
@@ -322,8 +287,8 @@ body {
     cursor: grabbing;
 }
 
-/* Messages */
 
+/* Messages */
 .messages {
     margin: 20px auto;
     max-width: 600px;
@@ -350,6 +315,41 @@ body {
 .message.info {
     border-color: #E6A4C7;
 }
+
+
+/* Empty State */
+.empty-state {
+    background-color: #FFF9ED;
+    border: 2px solid #E9B7D1;
+    border-radius: 16px;
+    padding: 60px 25px;
+    text-align: center;
+}
+
+.empty-state h2 {
+    color: #C84C91;
+    margin-bottom: 14px;
+}
+
+.empty-state p {
+    color: #35485A;
+    margin-bottom: 25px;
+    line-height: 1.7;
+}
+
+
+/* Footer */
+.footer {
+    background-color: #FCE8F1;
+    border: 2px solid #E9B7D1;
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-size: 13px;
+    text-align: center;
+}
+
+
+/* Match Popup */
 .match-popup {
     position: fixed;
     top: 20px;
@@ -357,7 +357,6 @@ body {
     transform: translateX(-50%);
     width: min(420px, calc(100% - 30px));
     z-index: 9999;
-
     animation: popupSlideDown 0.35s ease;
 }
 
@@ -407,14 +406,7 @@ body {
     font-size: 30px;
 }
 
-.popup-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
-}
-
-.popup-actions button,
-.popup-actions a {
+.popup-actions button {
     flex: 1;
     padding: 11px 8px;
     border: none;
@@ -432,7 +424,7 @@ body {
 .chat-button {
     background-color: #FCE8F1;
     color: #C84C91;
-    border: 1px solid #E9B7D1;
+    border: 1px solid #E9B7D1 !important;
     opacity: 0.8;
     cursor: not-allowed;
 }
@@ -442,6 +434,8 @@ body {
     color: #C84C91;
 }
 
+
+/* Stacked Cards */
 .match-card:nth-child(n+2) {
     filter: blur(8px);
     transform: scale(0.94) translateY(14px);
@@ -456,7 +450,7 @@ body {
 }
 
 
-
+/* Animation */
 @keyframes popupSlideDown {
     from {
         opacity: 0;
@@ -467,4 +461,53 @@ body {
         opacity: 1;
         transform: translate(-50%, 0);
     }
+}
+
+
+/* Responsive Layout */
+@media (max-width: 576px) {
+
+    .page-container {
+        padding: 10px;
+    }
+
+    .header {
+        padding: 10px;
+    }
+
+    .logo {
+        font-size: 20px;
+    }
+
+    .back-button {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+
+    .page-title {
+        font-size: 24px;
+    }
+
+    .match-grid {
+        height: 650px;
+    }
+
+    .card-content {
+        padding: 10px 18px;
+    }
+
+    .swipe-actions {
+        gap: 12px;
+        padding: 14px 12px 18px;
+    }
+
+    .swipe-actions button {
+        padding: 12px 8px;
+        font-size: 15px;
+    }
+
+    .popup-actions {
+        flex-direction: column;
+    }
+
 }

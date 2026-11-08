@@ -24,12 +24,12 @@ def normalize_skills(text):
 
 def find_matching_projects(user):
     """
-    Find projects that match the current user's request.
+    Find matching projects based on required categories.
 
     Matching rules:
-    1. User with a team searches for people.
-    2. User without a team searches for teams.
-    3. At least one matching skill is required.
+    1. Users with a team search for people without a team.
+    2. Users without a team search for teams.
+    3. Both sides use required_categories for matching.
     """
 
     my_project = (
@@ -44,41 +44,70 @@ def find_matching_projects(user):
     if not my_project:
         return []
 
-    has_team = bool(my_project.team_details.strip())
-
-    my_skills = normalize_skills(my_project.requirements_details)
-
-    if not my_skills:
-        return []
+    has_team = bool(
+        (my_project.team_details or "").strip() or my_project.team_categories.exists()
+    )
 
     candidate_projects = (
         Project.objects.filter(is_active=True)
         .exclude(user=user)
-        .select_related(
-            "user",
-            "user__profile",
+        .select_related("user", "user__profile")
+        .prefetch_related(
+            "team_categories",
+            "required_categories",
         )
     )
+
+    my_categories = {
+        category.name.strip().lower()
+        for category in my_project.required_categories.all()
+        if category.is_active
+    }
 
     matches = []
 
     for candidate in candidate_projects:
-        candidate_has_team = bool(candidate.team_details.strip())
+        candidate_has_team = bool(
+            (candidate.team_details or "").strip() or candidate.team_categories.exists()
+        )
 
-        # Find people when the current user has a team.
-        # Find teams when the current user has no team.
+        # Only match users with different team statuses.
         if candidate_has_team == has_team:
             continue
 
-        candidate_skills = normalize_skills(candidate.requirements_details)
+        candidate_categories = {
+            category.name.strip().lower()
+            for category in candidate.required_categories.all()
+            if category.is_active
+        }
 
-        common_skills = my_skills & candidate_skills
+        common_categories = my_categories & candidate_categories
 
-        if common_skills:
+        if common_categories:
+            # Collect all required categories from the candidate.
+            all_categories = {
+                category.name.strip().lower(): category.name.strip()
+                for category in candidate.required_categories.all()
+                if category.is_active
+            }
+
             matches.append(
                 {
                     "project": candidate,
-                    "matched_skills": sorted(common_skills),
+                    "matched_skills": sorted(common_categories),
+                    "all_skills": [
+                        {
+                            "name": name,
+                            "is_matched": key in common_categories,
+                        }
+                        for key, name in sorted(
+                            all_categories.items(),
+                            key=lambda item: (
+                                item[0] not in common_categories,
+                                item[0],
+                            ),
+                        )
+                    ],
                 }
             )
 

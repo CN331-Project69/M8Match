@@ -32,6 +32,12 @@ class CreateProjectView(LoginRequiredMixin, TemplateView):
         context["project"] = project
         context["profile"] = profile
         context["categories"] = Category.objects.filter(is_active=True)
+        context["has_team"] = bool(
+            project
+            and (
+                (project.team_details or "").strip() or project.team_categories.exists()
+            )
+        )
 
         if project:
             context["selected_team_categories"] = project.team_categories.values_list(
@@ -53,6 +59,9 @@ class CreateProjectView(LoginRequiredMixin, TemplateView):
 
         team_category_ids = request.POST.getlist("team_categories")
         required_category_ids = request.POST.getlist("required_categories")
+        if not required_category_ids:
+            messages.error(request, "Please select at least one skill before matching.")
+            return redirect("create_project")
 
         project = (
             Project.objects.filter(
