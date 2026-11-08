@@ -3,6 +3,9 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth import login
 from django.urls import reverse_lazy
 from .forms import RegisterForm
+from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
+
 
 
 class RegisterView(CreateView):
