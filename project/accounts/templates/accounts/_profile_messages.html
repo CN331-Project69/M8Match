@@ -1,0 +1,6 @@
+{# ข้อความแจ้งเตือน (เช่น บันทึกโปรไฟล์สำเร็จ) ใช้ร่วมกันระหว่างหน้าดูและหน้าแก้ไข #}
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}success{% endif %} profile-alert py-2">{{ message }}</div>
+    {% endfor %}
+{% endif %}

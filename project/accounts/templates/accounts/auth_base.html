@@ -3,6 +3,8 @@
 {% block body_class %}landing-page{% endblock %}
 
 {% block content %}
+{% include "partials/navbar.html" with overlay=True hide_brand=True %}
+
 <main class="landing d-flex flex-column justify-content-center align-items-center min-vh-100 px-3 py-5">
 
     <a href="{% url 'home' %}" class="text-decoration-none">

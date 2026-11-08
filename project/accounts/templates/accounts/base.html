@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -31,33 +32,6 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-        }
-
-        /* Navbar */
-        .site-navbar {
-            background: rgba(255, 248, 244, 0.88);
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            border-radius: 0 0 18px 18px;
-            box-shadow: 0 2px 8px rgba(120, 70, 100, 0.08);
-            padding: 10px 24px;
-        }
-
-        .site-brand {
-            color: #d63391 !important;
-            font-size: 25px;
-            font-weight: 800;
-            letter-spacing: 1px;
-        }
-
-        .site-nav-link {
-            color: #263b4a !important;
-            font-weight: 600;
-            margin-left: 12px;
-        }
-
-        .site-nav-link:hover,
-        .site-nav-link.active {
-            color: #d63391 !important;
         }
 
         /* พื้นที่เนื้อหา */
@@ -94,14 +68,6 @@
 
         /* ปรับการแสดงผลบนมือถือ */
         @media (max-width: 576px) {
-            .site-navbar {
-                padding: 8px 14px;
-            }
-
-            .site-brand {
-                font-size: 21px;
-            }
-
             .site-footer {
                 padding: 12px 15px;
             }
@@ -230,53 +196,15 @@
 
     </style>
 
+    <link rel="stylesheet" href="{% static 'css/m8-navbar.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
 
 <body>
 <div class="site-wrapper">
 
-    <!-- Navbar หลักของเว็บไซต์ -->
-    <nav class="navbar navbar-expand-lg site-navbar">
-        <div class="container-fluid">
-
-            <a class="navbar-brand site-brand" href="{% url 'home' %}">
-                M8Match
-            </a>
-
-            <button
-                class="navbar-toggler"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#mainNavbar"
-                aria-controls="mainNavbar"
-                aria-expanded="false"
-                aria-label="Toggle navigation"
-            >
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <div class="collapse navbar-collapse justify-content-end" id="mainNavbar">
-                <ul class="navbar-nav align-items-lg-center">
-
-                    <li class="nav-item">
-                        <a class="nav-link site-nav-link" href="{% url 'board:board' %}">
-                            Board
-                        </a>
-                    </li>
-
-                    {% if user.is_authenticated %}
-                    <li class="nav-item">
-                        <a class="nav-link site-nav-link" href="{% url 'profile_detail' %}">
-                            Profile
-                        </a>
-                    </li>
-                    {% endif %}
-
-                </ul>
-            </div>
-        </div>
-    </nav>
+    <!-- Navbar หลักของเว็บไซต์ (ใช้ร่วมกันทุกหน้า) -->
+    {% include "partials/navbar.html" %}
 
     <!-- เนื้อหาของแต่ละหน้า -->
     <main class="site-main">
