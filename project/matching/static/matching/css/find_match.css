@@ -10,10 +10,13 @@ body {
         #E78CC3
     );
     min-height: 100vh;
+    /* navbar อยู่บนสุด ส่วน .page-container ยืดเต็มพื้นที่ที่เหลือ */
+    display: flex;
+    flex-direction: column;
 }
 
 .page-container {
-    min-height: 100vh;
+    flex: 1;
     padding: 12px;
 }
 
