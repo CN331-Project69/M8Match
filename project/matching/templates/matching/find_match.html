@@ -17,6 +17,7 @@
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'matching/css/find_match.css' %}">
+    <link rel="stylesheet" href="{% static 'css/m8-navbar.css' %}">
 </head>
 
 <body>
@@ -81,20 +82,10 @@
 {% endif %}
 
 
+<!-- Navbar (ใช้ร่วมกันทุกหน้า) -->
+{% include "partials/navbar.html" %}
+
 <div class="page-container container-fluid d-flex flex-column">
-
-    <!-- Header -->
-    <header class="header d-flex justify-content-between align-items-center">
-
-        <a href="{% url 'home' %}" class="logo">
-            M8Match
-        </a>
-
-        <a href="{% url 'create_project' %}" class="back-button">
-            Back to Project
-        </a>
-
-    </header>
 
 
     <!-- Main Content -->
@@ -107,6 +98,14 @@
         <p class="page-description">
             Discover people and teams that match your skills.
         </p>
+
+        {% if has_matches %}
+            <div class="text-center mb-4">
+                <a href="{% url 'create_project' %}" class="back-button">
+                    Edit Your Project
+                </a>
+            </div>
+        {% endif %}
 
 
         <!-- Messages -->

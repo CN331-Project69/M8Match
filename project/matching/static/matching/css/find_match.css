@@ -18,21 +18,6 @@ body {
 }
 
 
-/* Header */
-.header {
-    padding: 12px 20px;
-    background-color: #FFF9ED;
-    border: 2px solid #E9B7D1;
-    border-radius: 12px;
-}
-
-.logo {
-    color: #D85A9C;
-    font-size: 24px;
-    font-weight: bold;
-    text-decoration: none;
-}
-
 .back-button {
     display: inline-block;
     color: #35485A;
@@ -482,14 +467,6 @@ body {
 
     .page-container {
         padding: 10px;
-    }
-
-    .header {
-        padding: 10px;
-    }
-
-    .logo {
-        font-size: 20px;
     }
 
     .back-button {
