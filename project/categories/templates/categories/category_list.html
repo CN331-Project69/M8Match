@@ -1,3 +1,17 @@
+
+<h1>Categories</h1>
+
+<ul>
+    {% for category in categories %}
+        <li>
+            <a href="{% url 'categories:category-detail' category.slug %}">
+                {{ category.name }}
+            </a>
+        </li>
+    {% empty %}
+        <li>No categories available.</li>
+    {% endfor %}
+</ul>
 <!DOCTYPE html>
 <html lang="en">
 <head>
