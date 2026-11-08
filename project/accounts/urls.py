@@ -9,6 +9,8 @@ from .views import (
 from . import views
 from django.contrib.auth import views as auth_views
 
+app_name = "accounts"
+
 urlpatterns = [
     path("", HomeView.as_view(), name="home"),
     path("register/", RegisterView.as_view(), name="register"),

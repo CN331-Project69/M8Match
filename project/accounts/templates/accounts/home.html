@@ -8,10 +8,10 @@
 
     {% if user.is_authenticated %}
         <nav class="top-nav d-flex align-items-center gap-3">
-            <a href="{% url 'profile_detail' %}" class="btn btn-m8 btn-m8-sm btn-m8-register">Profile</a>
+            <a href="{% url 'accounts:profile_detail' %}" class="btn btn-m8 btn-m8-sm btn-m8-register">Profile</a>
             <a href="#" class="btn btn-m8 btn-m8-sm btn-m8-register">Chat</a>
             <a href="{% url 'board:board' %}" class="btn btn-m8 btn-m8-sm btn-m8-register">Board</a>
-            <form method="post" action="{% url 'logout' %}" class="m-0">
+            <form method="post" action="{% url 'accounts:logout' %}" class="m-0">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-m8 btn-m8-sm btn-m8-login">Log Out</button>
             </form>
@@ -29,12 +29,12 @@
     <p class="fs-4 fw-bold mb-3">Hi, {% firstof user.profile.display_name user.username %}!</p>
         <div class="d-flex flex-wrap justify-content-center gap-3 mb-4">
             <a href="#" class="btn btn-m8 btn-m8-login">Create Project</a>
-            <a href="{% url 'match' %}" class="btn btn-m8 btn-m8-register">Match</a>
+            <a href="{% url 'accounts:match' %}" class="btn btn-m8 btn-m8-register">Match</a>
         </div>
     {% else %}
         <div class="d-flex flex-wrap justify-content-center gap-3 mb-4">
-            <a href="{% url 'register' %}" class="btn btn-m8 btn-m8-register">Register</a>
-            <a href="{% url 'login' %}" class="btn btn-m8 btn-m8-login">Log In</a>
+            <a href="{% url 'accounts:register' %}" class="btn btn-m8 btn-m8-register">Register</a>
+            <a href="{% url 'accounts:login' %}" class="btn btn-m8 btn-m8-login">Log In</a>
         </div>
     {% endif %}
 
