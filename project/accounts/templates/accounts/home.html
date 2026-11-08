@@ -28,8 +28,8 @@
     {% if user.is_authenticated %}
     <p class="fs-4 fw-bold mb-3">Hi, {% firstof user.profile.display_name user.username %}!</p>
         <div class="d-flex flex-wrap justify-content-center gap-3 mb-4">
-            <a href="#" class="btn btn-m8 btn-m8-login">Create Project</a>
-            <a href="{% url 'match' %}" class="btn btn-m8 btn-m8-register">Match</a>
+            <a href="{% url 'create_project' %}" class="btn btn-m8 btn-m8-login">Create Project</a>
+            <a href="{% url 'find_match' %}" class="btn btn-m8 btn-m8-register">Match</a>
         </div>
     {% else %}
         <div class="d-flex flex-wrap justify-content-center gap-3 mb-4">
