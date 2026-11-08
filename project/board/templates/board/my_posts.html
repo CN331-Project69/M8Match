@@ -109,7 +109,7 @@
             {% if post.images %}
             <div class="images">
                 {% for image in post.images %}
-                    {% if image.image %}<img src="{{ image.image.url }}" alt="Post image">{% endif %}
+                    <img src="{{ image }}" alt="Post image">
                 {% endfor %}
             </div>
             {% endif %}
@@ -145,7 +145,7 @@
             {% if post.images %}
             <div class="images">
                 {% for image in post.images %}
-                    {% if image.image %}<img src="{{ image.image.url }}" alt="Post image">{% endif %}
+                    <img src="{{ image }}" alt="Post image">
                 {% endfor %}
             </div>
             {% endif %}

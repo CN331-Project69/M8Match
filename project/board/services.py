@@ -2,6 +2,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 
 from .models import Post, PostImage
+from .moderation.service import moderate_post
 
 
 def _delete_storage_file(storage, name):
@@ -75,6 +76,16 @@ def create_post(
     images=None,
 ):
 
+    # ตรวจสอบเนื้อหาก่อนสร้าง Post
+    result = moderate_post(
+        title=title,
+        content=content,
+        user=author
+    )
+
+    if not result["is_allowed"]:
+        raise ValidationError(result["errors"])
+
     images = list(images or [])
 
     # สร้าง Post
@@ -123,6 +134,18 @@ def update_post(
     original_post.refresh_from_db()
 
     post = original_post
+
+
+    # ตรวจสอบเนื้อหาใหม่ก่อนแก้ไข Post
+    result = moderate_post(
+        title=title,
+        content=content,
+        user=post.author
+    )
+
+    if not result["is_allowed"]:
+        raise ValidationError(result["errors"])
+
 
     # ตรวจสอบ Category เดิม
     old_category_ids = set(

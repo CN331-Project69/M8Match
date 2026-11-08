@@ -85,8 +85,32 @@
 .post-title { font-size:1.2rem; font-weight:850; line-height:1.45; margin:0 0 9px; overflow-wrap:anywhere; }
 .post-content { color:#64727d; line-height:1.75; white-space:pre-line; overflow-wrap:anywhere; margin:0; }
 .read-more { display:inline-block; color:var(--pink-dark); font-size:.85rem; font-weight:750; margin-top:7px; }
-.post-images { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; margin-top:16px; }
-.post-images img { width:100%; aspect-ratio:4/3; max-height:260px; object-fit:cover; border-radius:12px; }
+.post-images {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.post-images img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: 14px;
+    border: 1px solid #f0e3eb;
+}
+
+.post-images img:only-child {
+    grid-column: 1 / -1;
+    max-height: 360px;
+    aspect-ratio: 16 / 9;
+}
+
+@media (max-width: 600px) {
+    .post-images {
+        grid-template-columns: 1fr;
+    }
+}
 
 .post-actions {
     display:flex; align-items:center; flex-wrap:wrap; gap:8px;
@@ -152,6 +176,24 @@
     .sidebar { grid-template-columns:1fr; }
     .post-manage { margin-left:0; }
     .action-btn.report { margin-left:0; }
+}
+.post-categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin: 10px 0 14px;
+}
+
+.post-category {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: #fce7f3;
+    color: #bd287e;
+    border: 1px solid #f5c7df;
+    font-size: 0.78rem;
+    font-weight: 700;
 }
 </style>
 {% endblock %}
@@ -233,13 +275,24 @@
                 </div>
 
                 <h3 class="post-title">{{ post.title }}</h3>
+                {% if post.categories %}
+                <div class="post-categories">
+                    {% for category in post.categories %}
+                        <span class="post-category">
+                        {{ category.name }}
+                        </span>
+                    {% endfor %}
+                    </div>
+                {% endif %}
                 <p class="post-content">{{ post.content }}</p>
                 {% if post.is_truncated %}<span class="read-more">Sign in to read the full post.</span>{% endif %}
 
                 {% if post.images %}
                 <div class="post-images">
-                    {% for image in post.images %}
-                        {% if image.image %}<img src="{{ image.image.url }}" alt="Post image">{% endif %}
+                    {% for image_url in post.images %}
+                        <img src="{{ image_url }}"
+                            alt="Post image"
+                            loading="lazy">
                     {% endfor %}
                 </div>
                 {% endif %}

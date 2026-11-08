@@ -134,3 +134,5 @@ LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "home"
 LOGIN_URL = "/login/"
 LOGOUT_REDIRECT_URL = "home"
+
+BOARD_INTEGRATION_ADAPTER = "board.interaction_adapter.M8MatchBoardAdapter"
