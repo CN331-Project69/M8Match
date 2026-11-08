@@ -22,7 +22,7 @@
 <body>
 
 {% if new_match %}
-<div class="match-popup" id="matchPopup">
+<div class="match-popup" id="matchPopup" role="dialog" aria-modal="true" aria-labelledby="matchPopupTitle">
     <div class="popup-content">
 
         <button
@@ -36,7 +36,7 @@
 
         <div class="match-label">IT'S A MATCH!</div>
 
-        <h2>You found your teammate!</h2>
+        <h2 id="matchPopupTitle">You found your teammate!</h2>
 
         {% if new_match.profile_picture %}
             <img
@@ -65,14 +65,15 @@
                 Continue Swiping
             </button>
 
-            <button
-                type="button"
-                class="btn chat-button"
-                disabled
-                title="Chat feature is not available yet"
-            >
-                Chat Coming Soon
-            </button>
+            {% if new_match.user_id %}
+                <!-- สร้างห้องแชท (หรือเปิดห้องเดิมถ้ามีแล้ว) แล้วพาไปหน้าแชททันที -->
+                <form method="post" action="{% url 'chat:start' new_match.user_id %}" class="popup-chat-form">
+                    {% csrf_token %}
+                    <button type="submit" class="btn chat-button">
+                        Chat with {{ new_match.display_name }}
+                    </button>
+                </form>
+            {% endif %}
 
         </div>
     </div>
@@ -434,6 +435,19 @@ function closeMatchPopup() {
     }
 
 }
+
+// Popup Match: โฟกัสปุ่ม Chat ทันที และกด Esc = ปัดต่อ
+(function () {
+    const popup = document.getElementById("matchPopup");
+    if (!popup) return;
+
+    const chatButton = popup.querySelector(".chat-button");
+    (chatButton || popup.querySelector(".continue-button"))?.focus();
+
+    document.addEventListener("keydown", event => {
+        if (event.key === "Escape") closeMatchPopup();
+    });
+})();
 
 </script>
 
