@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 
 from .models import Project, Swipe, Match
+from chat.services import get_or_create_direct_conversation
 
 
 def normalize_skills(text):
@@ -175,6 +176,10 @@ def swipe_user(user, target_user_id, direction):
             )
 
             matched = created
+
+            # สร้างห้องแชทให้ทันที ทั้งสองฝ่ายจะเห็นกันในหน้าแชท
+            # ไม่ว่าจะกด Chat หรือ Continue Swiping ใน popup
+            get_or_create_direct_conversation(user1, user2)
 
     return {
         "swipe": swipe,

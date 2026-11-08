@@ -14,6 +14,7 @@ from django.contrib.auth import get_user_model
 from PIL import Image, UnidentifiedImageError
     
 from .models import Conversation, Message
+from .services import get_or_create_direct_conversation
 
 
 # --------------------------------------------------------------------------
@@ -173,9 +174,5 @@ def start_chat(request, user_id):
     target = get_object_or_404(User, id=user_id, is_active=True)
 
     # หาห้องที่มีเราและเขาอยู่แล้ว ถ้าไม่มีค่อยสร้างใหม่
-    conv = (Conversation.objects.filter(participants=request.user)
-            .filter(participants=target).first())
-    if conv is None:
-        conv = Conversation.objects.create()
-        conv.participants.add(request.user, target)
+    conv = get_or_create_direct_conversation(request.user, target)
     return redirect("chat:room", room_id=conv.id)

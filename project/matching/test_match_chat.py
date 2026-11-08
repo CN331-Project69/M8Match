@@ -56,3 +56,68 @@ class MatchPopupChatTests(TestCase):
         self.client.post(url)
         self.client.post(url)
         self.assertEqual(Conversation.objects.filter(participants=self.me).count(), 1)
+
+
+class MatchCreatesConversationTests(TestCase):
+    """Match สำเร็จแล้วต้องมีห้องแชททันที ไม่ต้องรอกดปุ่ม Chat"""
+
+    def setUp(self):
+        User = get_user_model()
+        self.me = User.objects.create_user(username="me", password="pass12345")
+        self.mate = User.objects.create_user(username="mate", password="pass12345")
+
+    def conversations_between(self, a, b):
+        return Conversation.objects.filter(participants=a).filter(participants=b)
+
+    def test_mutual_like_creates_conversation_for_both(self):
+        from .services import swipe_user
+
+        swipe_user(self.mate, self.me.id, Swipe.RIGHT)
+        result = swipe_user(self.me, self.mate.id, Swipe.RIGHT)
+
+        self.assertTrue(result["matched"])
+        self.assertEqual(self.conversations_between(self.me, self.mate).count(), 1)
+
+        # อีกฝ่ายเห็นห้องในหน้าแชทของตัวเองด้วย
+        self.client.force_login(self.mate)
+        response = self.client.get(reverse("chat:inbox"))
+        self.assertContains(response, "me")
+        conversation = self.conversations_between(self.me, self.mate).get()
+        self.assertContains(response, reverse("chat:room", args=[conversation.id]))
+
+    def test_one_sided_like_or_pass_creates_no_conversation(self):
+        from .services import swipe_user
+
+        swipe_user(self.me, self.mate.id, Swipe.RIGHT)
+        swipe_user(self.mate, self.me.id, Swipe.LEFT)
+        self.assertFalse(self.conversations_between(self.me, self.mate).exists())
+
+    def test_match_reuses_existing_conversation(self):
+        from chat.services import get_or_create_direct_conversation
+
+        from .services import swipe_user
+
+        existing = get_or_create_direct_conversation(self.me, self.mate)
+        swipe_user(self.mate, self.me.id, Swipe.RIGHT)
+        swipe_user(self.me, self.mate.id, Swipe.RIGHT)
+        self.assertEqual(list(self.conversations_between(self.me, self.mate)), [existing])
+
+    def test_backfill_migration_adds_rooms_for_old_matches(self):
+        import importlib
+
+        from django.apps import apps
+
+        from .models import Match
+
+        backfill = importlib.import_module(
+            "matching.migrations.0004_backfill_match_conversations"
+        ).backfill_match_conversations
+
+        # Match เก่าที่เกิดก่อนมีระบบสร้างห้องอัตโนมัติ
+        Match.objects.create(user1=self.me, user2=self.mate)
+        self.assertFalse(self.conversations_between(self.me, self.mate).exists())
+
+        backfill(apps, None)
+        backfill(apps, None)  # รันซ้ำต้องไม่สร้างห้องซ้ำ
+
+        self.assertEqual(self.conversations_between(self.me, self.mate).count(), 1)
