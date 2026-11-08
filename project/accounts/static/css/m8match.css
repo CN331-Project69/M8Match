@@ -327,3 +327,37 @@ body.landing-page::after {
 @media (max-width: 576px) {
     .profile-avatar { width: 128px; height: 128px; font-size: 3.2rem; }
 }
+
+/* ===== หน้า Categories ===== */
+.category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.category-card {
+    display: block;
+    height: 100%;
+    padding: 1.1rem 1.25rem;
+    color: var(--m8-ink);
+    text-decoration: none;
+    background: rgba(255, 252, 245, 0.85);
+    border: 3px solid var(--m8-pink);
+    border-radius: 22px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.category-card:hover,
+.category-card:focus-visible {
+    color: var(--m8-ink);
+    transform: translateY(-2px);
+    box-shadow: 0 0 0 5px rgba(224, 53, 155, 0.18);
+}
+.category-card:focus-visible { outline: 3px solid var(--m8-ink); outline-offset: 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+    .category-card { transition: none; }
+    .category-card:hover { transform: none; }
+}
