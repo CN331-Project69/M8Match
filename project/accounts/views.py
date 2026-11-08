@@ -1,9 +1,11 @@
-from django.views.generic import CreateView, TemplateView
+from django.views.generic import CreateView, TemplateView, UpdateView
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth import login
 from django.urls import reverse_lazy
 from .forms import RegisterForm
-
+from django.contrib.auth.mixins import LoginRequiredMixin
+from .models import Profile
+from .forms import ProfileForm
 
 class RegisterView(CreateView):
     form_class = RegisterForm
@@ -28,3 +30,14 @@ class CustomLogoutView(LogoutView):
 
 class HomeView(TemplateView):
     template_name = "accounts/home.html"
+
+
+class ProfileUpdateView(LoginRequiredMixin, UpdateView):
+    model = Profile
+    form_class = ProfileForm
+    template_name = 'accounts/profile.html' 
+    success_url = reverse_lazy('profile_update')
+
+    def get_object(self, queryset=None):
+        profile, created = Profile.objects.get_or_create(user=self.request.user)
+        return profile
