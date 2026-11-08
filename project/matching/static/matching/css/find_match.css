@@ -421,17 +421,30 @@ body {
     color: #333;
 }
 
-.chat-button {
-    background-color: #FCE8F1;
-    color: #C84C91;
-    border: 1px solid #E9B7D1 !important;
-    opacity: 0.8;
-    cursor: not-allowed;
+/* ฟอร์มที่ห่อปุ่ม Chat ต้องยืดเท่าปุ่ม Continue */
+.popup-chat-form {
+    flex: 1;
+    display: flex;
+    margin: 0;
 }
 
-.chat-button:disabled {
-    background-color: #FCE8F1;
-    color: #C84C91;
+.chat-button {
+    background-color: #C84C91;
+    color: #fff;
+    font-weight: 600;
+    transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.chat-button:hover,
+.chat-button:focus-visible {
+    background-color: #A83A78;
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+.popup-actions button:focus-visible {
+    outline: 3px solid #14284b;
+    outline-offset: 2px;
 }
 
 

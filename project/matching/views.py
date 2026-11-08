@@ -141,6 +141,7 @@ class FindMatchView(LoginRequiredMixin, TemplateView):
 
                 request.session["new_match"] = {
                     "match_id": match.id,
+                    "user_id": other_user.id,
                     "display_name": (
                         profile.display_name
                         if profile and profile.display_name
