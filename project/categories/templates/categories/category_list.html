@@ -12,3 +12,32 @@
         <li>No categories available.</li>
     {% endfor %}
 </ul>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Categories</title>
+</head>
+<body>
+    <main>
+        <h1>Categories</h1>
+
+        {% if categories %}
+            <ul>
+                {% for category in categories %}
+                    <li>
+                        <h2>{{ category.name }}</h2>
+
+                        {% if category.description %}
+                            <p>{{ category.description }}</p>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No categories available.</p>
+        {% endif %}
+    </main>
+</body>
+</html>

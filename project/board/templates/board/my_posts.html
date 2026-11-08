@@ -1,0 +1,211 @@
+
+{% extends "accounts/base.html" %}
+{% block title %}My Board | M8Match{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+    --pink:#d63391; --dark:#bd287e; --pale:#fce7f3;
+    --text:#263b4a; --muted:#788692; --shadow:0 12px 32px rgba(92,54,79,.09);
+}
+.myboard {
+    min-height:100vh; padding:35px 0 65px; color:var(--text);
+    background:
+        radial-gradient(circle at 8% 10%,rgba(255,226,183,.65),transparent 30%),
+        radial-gradient(circle at 90% 18%,rgba(242,181,219,.55),transparent 32%),
+        linear-gradient(135deg,#fff8e9,#fceaf2 50%,#f2eafa);
+}
+.myboard-wrap { width:min(1050px,94%); margin:auto; }
+.myboard-header,.myboard-card,.myboard-tabs {
+    border:1px solid rgba(255,255,255,.9);
+    background:rgba(255,255,255,.92); box-shadow:var(--shadow);
+}
+.myboard-header { padding:34px; border-radius:24px; margin-bottom:22px; }
+.myboard-label {
+    display:inline-block; padding:6px 13px; border-radius:25px;
+    color:var(--dark); background:var(--pale); font-size:.76rem; font-weight:800;
+}
+.myboard-header h1 { margin:13px 0 7px; font-size:2rem; font-weight:850; }
+.myboard-header p { margin:0; color:var(--muted); }
+.back-link {
+    display:inline-flex; margin-top:17px; padding:9px 14px;
+    border:1px solid #f0dce8; border-radius:10px; color:var(--text);
+    background:white; text-decoration:none; font-weight:750;
+}
+.myboard-tabs { display:flex; gap:8px; padding:8px; border-radius:15px; margin-bottom:21px; }
+.myboard-tabs button {
+    flex:1; padding:12px; border:0; border-radius:10px;
+    background:transparent; color:var(--muted); font-weight:800;
+}
+.myboard-tabs button.active {
+    color:white; background:linear-gradient(135deg,#e64b9e,#c72d85);
+}
+.tab-panel { display:none; }
+.tab-panel.active { display:block; }
+.myboard-card { padding:21px; border-radius:19px; margin-bottom:16px; }
+.myboard-card h3 { margin:0 0 8px; font-size:1.15rem; font-weight:850; overflow-wrap:anywhere; }
+.meta { color:var(--muted); font-size:.8rem; margin-bottom:13px; }
+.post-text { color:#64727d; line-height:1.75; white-space:pre-line; overflow-wrap:anywhere; }
+.images { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; margin-top:14px; }
+.images img { width:100%; max-height:230px; aspect-ratio:4/3; object-fit:cover; border-radius:12px; }
+.card-actions { display:flex; flex-wrap:wrap; gap:8px; padding-top:14px; margin-top:15px; border-top:1px solid #f0e3eb; }
+.card-actions a {
+    padding:8px 13px; border-radius:10px; color:var(--text);
+    background:#f8f3f7; text-decoration:none; font-size:.84rem; font-weight:750;
+}
+.card-actions a:hover { color:var(--dark); background:var(--pale); }
+.card-actions .delete { color:#a34e68; background:#fff0f3; }
+.stats { margin-left:auto; color:var(--muted); font-size:.84rem; align-self:center; }
+.empty {
+    padding:44px 20px; border:1px dashed #e9c5d9;
+    border-radius:19px; background:rgba(255,255,255,.75); text-align:center;
+}
+.empty-icon { font-size:2rem; color:var(--pink); margin-bottom:10px; }
+.empty h3 { font-weight:850; }
+.empty p { color:var(--muted); }
+.primary-link {
+    display:inline-flex; padding:10px 16px; border-radius:10px;
+    color:white; background:linear-gradient(135deg,#e64b9e,#c72d85);
+    text-decoration:none; font-weight:750;
+}
+.primary-link:hover { color:white; background:var(--dark); }
+@media(max-width:600px) {
+    .myboard-header { padding:24px 20px; }
+    .myboard-card { padding:16px; }
+    .images { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .stats { width:100%; margin-left:0; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="myboard">
+<div class="myboard-wrap">
+
+    <header class="myboard-header">
+        <span class="myboard-label">YOUR M8MATCH BOARD</span>
+        <h1>My Board</h1>
+        <p>Manage your posts and keep track of opportunities you like.</p>
+        <a href="{% url 'board:board' %}" class="back-link">← Back to Board</a>
+    </header>
+
+    <div class="myboard-tabs" role="tablist">
+        <button type="button" id="tab-posts" class="active" role="tab"
+                aria-controls="panel-posts" aria-selected="true">My Posts</button>
+        <button type="button" id="tab-likes" role="tab"
+                aria-controls="panel-likes" aria-selected="false">My Likes</button>
+    </div>
+
+    <section id="panel-posts" class="tab-panel active" role="tabpanel">
+        {% for post in posts %}
+        <article class="myboard-card">
+            <h3>{{ post.title }}</h3>
+            <div class="meta">
+                {{ post.created_at|date:"M d, Y · H:i" }}
+                {% if post.is_edited %} · Edited{% endif %}
+            </div>
+            <p class="post-text">{{ post.content }}</p>
+
+            {% if post.images %}
+            <div class="images">
+                {% for image in post.images %}
+                    {% if image.image %}<img src="{{ image.image.url }}" alt="Post image">{% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="card-actions">
+                <a href="{% url 'board:edit_post' post.id %}">Edit Post</a>
+                <a class="delete" href="{% url 'board:delete_post' post.id %}">Delete Post</a>
+                <span class="stats">
+                    {% if post.like_count %}♥ {{ post.like_count }}{% endif %}
+                    {% if post.comment_count %} · Comments {{ post.comment_count }}{% endif %}
+                </span>
+            </div>
+        </article>
+        {% empty %}
+        <div class="empty">
+            <div class="empty-icon">✦</div>
+            <h3>You haven't posted anything yet</h3>
+            <p>Share your idea or competition and find your future teammates.</p>
+            <a href="{% url 'board:create_post' %}" class="primary-link">Create Your First Post</a>
+        </div>
+        {% endfor %}
+    </section>
+
+    <section id="panel-likes" class="tab-panel" role="tabpanel" hidden>
+        {% for post in liked_posts %}
+        <article class="myboard-card">
+            <h3>{{ post.title }}</h3>
+            <div class="meta">
+                By {{ post.author_name }} · {{ post.created_at|date:"M d, Y · H:i" }}
+            </div>
+            <p class="post-text">{{ post.content }}</p>
+
+            {% if post.images %}
+            <div class="images">
+                {% for image in post.images %}
+                    {% if image.image %}<img src="{{ image.image.url }}" alt="Post image">{% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="card-actions">
+                <a href="{% url 'board:board' %}#post-{{ post.id }}">View Post</a>
+                <span class="stats">
+                    {% if post.like_count %}♥ {{ post.like_count }}{% endif %}
+                    {% if post.comment_count %} · Comments {{ post.comment_count }}{% endif %}
+                </span>
+            </div>
+        </article>
+        {% empty %}
+        <div class="empty">
+            <div class="empty-icon">♡</div>
+            <h3>No liked posts yet</h3>
+            <p>When you like a post, you can find it here.</p>
+            <a href="{% url 'board:board' %}" class="primary-link">Explore Board</a>
+        </div>
+        {% endfor %}
+    </section>
+
+</div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const postsTab = document.getElementById("tab-posts");
+    const likesTab = document.getElementById("tab-likes");
+    const postsPanel = document.getElementById("panel-posts");
+    const likesPanel = document.getElementById("panel-likes");
+
+    function showTab(which) {
+        const likes = which === "likes";
+        postsTab.classList.toggle("active", !likes);
+        likesTab.classList.toggle("active", likes);
+        postsTab.setAttribute("aria-selected", String(!likes));
+        likesTab.setAttribute("aria-selected", String(likes));
+        postsPanel.classList.toggle("active", !likes);
+        likesPanel.classList.toggle("active", likes);
+        postsPanel.hidden = likes;
+        likesPanel.hidden = !likes;
+    }
+
+    postsTab.addEventListener("click", function () {
+        showTab("posts");
+        const url = new URL(window.location.href);
+        url.searchParams.delete("tab");
+        history.replaceState({}, "", url);
+    });
+
+    likesTab.addEventListener("click", function () {
+        showTab("likes");
+        const url = new URL(window.location.href);
+        url.searchParams.set("tab", "likes");
+        history.replaceState({}, "", url);
+    });
+
+    const params = new URLSearchParams(window.location.search);
+    showTab(params.get("tab") === "likes" ? "likes" : "posts");
+});
+</script>
+{% endblock %}
