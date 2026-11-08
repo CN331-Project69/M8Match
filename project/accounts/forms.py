@@ -16,5 +16,5 @@ class ProfileForm(forms.ModelForm):
             'profile_picture': forms.ClearableFileInput(attrs={'class': 'form-control'}),
             'display_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ชื่อที่จะให้เพื่อนร่วมทีมเห็น'}),
             'about_me': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'แนะนำตัวเองสั้นๆ เป้าหมายใน Hackathon...'}),
-            'skills': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ระบุทักษะที่มี...'}),
+            'skills': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'เช่น Python, Django, UI/UX'}),
         }

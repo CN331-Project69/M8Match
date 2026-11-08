@@ -1,46 +1,107 @@
-{% extends 'accounts/base.html' %} <!-- สมมติว่าไฟล์ base.html มีการดึง Bootstrap 5 CDN ไว้แล้ว -->
+{% extends "base.html" %}
+
+{% block title %}Edit Profile | M8Match{% endblock %}
+{% block body_class %}landing-page{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-dark text-white">
-                    <h5 class="mb-0">จัดการโปรไฟล์นักพัฒนา</h5>
+<main class="landing profile-page container py-4 min-vh-100">
+
+    {% include "accounts/_profile_header.html" %}
+
+    {% firstof object.display_name object.user.username as shown_name %}
+
+    <section class="profile-card">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+            <h1 class="profile-name mb-0">Edit Profile</h1>
+            <a href="{% url 'profile_detail' %}" class="btn btn-m8 btn-m8-sm btn-m8-register">&laquo; Back</a>
+        </div>
+
+        <!-- มีการอัปโหลดไฟล์ ต้องใส่ enctype="multipart/form-data" เสมอ -->
+        <form method="post" enctype="multipart/form-data" class="profile-form" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger py-2">
+                    {% for error in form.non_field_errors %}{{ error }}{% endfor %}
                 </div>
-                <div class="card-body p-4">
-                    <!-- กฎเหล็ก: มีการอัปโหลดไฟล์ ต้องใส่ enctype="multipart/form-data" เสมอ -->
-                    <form method="post" enctype="multipart/form-data" novalidate>
-                        {% csrf_token %}
-                        
-                        {% for field in form %}
-                            <div class="mb-3">
-                                <label for="{{ field.id_for_label }}" class="form-label fw-bold">
-                                    {{ field.label }}
-                                </label>
-                                {{ field }}
-                                
-                                <!-- แสดงข้อความแจ้งเตือน Error เฉพาะฟิลด์นั้น -->
-                                {% if field.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in field.errors %}{{ error }}{% endfor %}
-                                    </div>
-                                {% endif %}
-                                
-                                <!-- แสดง help_text ถ้ามีการกำหนดไว้ใน Model -->
-                                {% if field.help_text %}
-                                    <div class="form-text">{{ field.help_text }}</div>
-                                {% endif %}
-                            </div>
-                        {% endfor %}
-                        
-                        <div class="d-grid mt-4">
-                            <button type="submit" class="btn btn-primary btn-lg">บันทึกโปรไฟล์</button>
+            {% endif %}
+
+            <!-- รูปโปรไฟล์ + ปุ่มเลือกไฟล์ -->
+            <div class="d-flex flex-column flex-sm-row align-items-center gap-4 mb-4">
+                <div class="profile-avatar" id="avatar-preview">
+                    {% if object.profile_picture %}
+                        <img src="{{ object.profile_picture.url }}" alt="Current profile picture">
+                    {% else %}
+                        <span aria-hidden="true">{{ shown_name|first|upper }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="photo-picker text-center text-sm-start">
+                    <label for="{{ form.profile_picture.id_for_label }}" class="btn btn-m8 btn-m8-sm btn-m8-login mb-2">
+                        Choose Photo
+                    </label>
+                    <input type="file" name="{{ form.profile_picture.html_name }}" id="{{ form.profile_picture.id_for_label }}"
+                           accept="image/*" class="visually-hidden">
+                    <div class="profile-hint" id="avatar-filename">JPG or PNG, square images look best.</div>
+                    {% if object.profile_picture %}
+                        <div class="form-check mt-2 d-inline-flex align-items-center gap-2">
+                            <input type="checkbox" class="form-check-input" name="{{ form.profile_picture.html_name }}-clear"
+                                   id="{{ form.profile_picture.html_name }}-clear_id">
+                            <label class="form-check-label" for="{{ form.profile_picture.html_name }}-clear_id">Remove current photo</label>
                         </div>
-                    </form>
+                    {% endif %}
+                    {% for error in form.profile_picture.errors %}
+                        <div class="field-error">{{ error }}</div>
+                    {% endfor %}
                 </div>
             </div>
-        </div>
-    </div>
-</div>
+
+            <div class="mb-3">
+                <label for="{{ form.display_name.id_for_label }}" class="profile-section-title d-block">Display name</label>
+                {{ form.display_name }}
+                {% for error in form.display_name.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.about_me.id_for_label }}" class="profile-section-title d-block">About me</label>
+                {{ form.about_me }}
+                {% for error in form.about_me.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.skills.id_for_label }}" class="profile-section-title d-block">Skills &amp; Interests</label>
+                {{ form.skills }}
+                <div class="profile-hint">Use , to separate each skill.</div>
+                {% for error in form.skills.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+            </div>
+
+            <div class="d-flex flex-wrap justify-content-end gap-3 mt-4">
+                <a href="{% url 'profile_detail' %}" class="btn btn-m8 btn-m8-sm btn-m8-register">Cancel</a>
+                <button type="submit" class="btn btn-m8 btn-m8-sm btn-m8-login">Save Profile</button>
+            </div>
+        </form>
+    </section>
+
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // แสดงตัวอย่างรูปทันทีที่เลือกไฟล์ (ยังไม่ได้อัปโหลดจนกว่าจะกด Save)
+    (function () {
+        const input = document.getElementById("{{ form.profile_picture.id_for_label }}");
+        const preview = document.getElementById("avatar-preview");
+        const filename = document.getElementById("avatar-filename");
+        if (!input) return;
+        input.addEventListener("change", function () {
+            const file = input.files && input.files[0];
+            if (!file) return;
+            filename.textContent = file.name;
+            const img = document.createElement("img");
+            img.alt = "New profile picture preview";
+            img.src = URL.createObjectURL(file);
+            preview.replaceChildren(img);
+        });
+    })();
+</script>
 {% endblock %}

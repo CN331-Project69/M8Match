@@ -41,11 +41,15 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     model = Profile
     form_class = ProfileForm
     template_name = "accounts/profile.html"
-    success_url = reverse_lazy("profile_update")
+    success_url = reverse_lazy("profile_detail")
 
     def get_object(self, queryset=None):
         profile, created = Profile.objects.get_or_create(user=self.request.user)
         return profile
+
+    def form_valid(self, form):
+        messages.success(self.request, "Your profile has been updated.")
+        return super().form_valid(form)
 
 
 class ProfileDetailView(LoginRequiredMixin, DetailView):

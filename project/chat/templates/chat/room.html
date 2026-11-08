@@ -203,7 +203,7 @@
       <a class="nav-link" href="{% url 'find_match' %}">Match</a>
       <a class="nav-link" href="{% url 'board:board' %}">Board</a>
       <a class="nav-link active" href="{% url 'chat:inbox' %}">Chat</a>
-      <a class="nav-link" href="#">Profile</a>
+      <a class="nav-link" href="{% url 'profile_detail' %}">Profile</a>
       <a class="nav-link" href="#">Settings</a>
       <!-- Django 5: logout ต้องเป็น POST -->
       <form method="post" action="{% url 'logout' %}" class="m-0">
