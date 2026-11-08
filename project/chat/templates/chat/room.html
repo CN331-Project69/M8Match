@@ -38,6 +38,7 @@
 
     /* Sidebar */
     .sidebar {
+      position: relative;
       height: 100%;
       border: 1px solid #333;
       border-radius: 8px;
@@ -45,14 +46,56 @@
       padding: .5rem .4rem;
       overflow: hidden;
     }
+    /* รายชื่อเลื่อนขึ้นลงได้เมื่อมีหลายคน */
     .contact-scroll {
       height: 100%;
       overflow-y: auto;
-      direction: rtl;               /* ย้าย scrollbar ไปทางซ้าย */
-      padding-left: .25rem;
+      overscroll-behavior: contain;   /* เลื่อนสุดแล้วไม่ลากทั้งหน้าไปด้วย */
+      padding-right: .3rem;
     }
-    .contact-scroll > * { direction: ltr; }
-    .contact-scroll::-webkit-scrollbar { width: 6px; }
+    /* เงาจางที่ขอบบน/ล่าง: บอกว่ายังมีรายชื่อซ่อนอยู่ (JS ใส่ class ให้) */
+    .sidebar::before,
+    .sidebar::after {
+      content: "";
+      position: absolute;
+      left: 1px;
+      right: 1px;
+      height: 2.5rem;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .2s;
+      z-index: 1;
+    }
+    .sidebar::before {
+      top: 0;
+      border-radius: 8px 8px 0 0;
+      background: linear-gradient(#fffdf6, rgba(255, 253, 246, 0));
+    }
+    .sidebar::after {
+      bottom: 0;
+      border-radius: 0 0 8px 8px;
+      background: linear-gradient(rgba(255, 246, 224, 0), #fff6e0);
+    }
+    .sidebar.more-above::before,
+    .sidebar.more-below::after { opacity: 1; }
+    .scroll-more {
+      position: absolute;
+      left: 50%;
+      bottom: .4rem;
+      z-index: 2;
+      transform: translateX(-50%);
+      border: 1px solid var(--orange);
+      border-radius: 999px;
+      background: var(--cream);
+      color: var(--navy);
+      font-size: .8rem;
+      font-weight: 600;
+      padding: .15rem .75rem;
+      box-shadow: 0 2px 6px rgba(245, 166, 35, .3);
+    }
+    .scroll-more:hover { background: #fff; }
+    .scroll-more:focus-visible { outline: 3px solid var(--navy); outline-offset: 2px; }
+    .contact-scroll::-webkit-scrollbar { width: 8px; }
     .contact-scroll::-webkit-scrollbar-track { background: #ffe8b8; border-radius: 10px; }
     .contact-scroll::-webkit-scrollbar-thumb { background: var(--orange); border-radius: 10px; }
     .contact-scroll { scrollbar-width: thin; scrollbar-color: var(--orange) #ffe8b8; }
@@ -66,7 +109,7 @@
       border-radius: 10px;
       background: var(--cream);
       padding: .6rem .8rem;
-      margin: 0 0 .5rem .5rem;
+      margin: 0 0 .5rem 0;
       cursor: pointer;
       transition: box-shadow .15s;
     }
@@ -197,6 +240,9 @@
               <div class="text-center mt-4 text-muted small">ยังไม่มีประวัติการสนทนา</div>
             {% endfor %}
           </div>
+          <button type="button" class="scroll-more" id="contactScrollMore" hidden>
+            <i class="bi bi-chevron-down me-1"></i>เลื่อนดูเพิ่ม
+          </button>
         </div>
       </aside>
 
@@ -251,6 +297,40 @@
   </footer>
 
 </div>
+
+<script>
+  // รายชื่อแชท: บอกว่ามีรายชื่อเหลือด้านบน/ล่าง และเลื่อนห้องที่เปิดอยู่ให้เห็น
+  (function () {
+    const list = document.getElementById("contactList");
+    const sidebar = list && list.closest(".sidebar");
+    const more = document.getElementById("contactScrollMore");
+    if (!list || !sidebar) return;
+
+    function update() {
+      const above = list.scrollTop > 4;
+      const below = list.scrollTop + list.clientHeight < list.scrollHeight - 4;
+      sidebar.classList.toggle("more-above", above);
+      sidebar.classList.toggle("more-below", below);
+      if (more) more.hidden = !below;
+    }
+
+    list.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    // มีข้อความใหม่ ห้องจะถูกย้ายขึ้นบนสุด -> คำนวณใหม่
+    new MutationObserver(update).observe(list, { childList: true });
+
+    if (more) {
+      more.addEventListener("click", () => {
+        list.scrollBy({ top: list.clientHeight * 0.8, behavior: "smooth" });
+      });
+    }
+
+    const active = list.querySelector(".contact.active");
+    if (active) active.scrollIntoView({ block: "nearest" });
+
+    update();
+  })();
+</script>
 
 {% if room_id %}
 <script>
