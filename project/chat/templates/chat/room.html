@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>M8Match - Chat</title>
+
+  <!-- Bootstrap 5 + Icons + Fonts -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400;0,500;0,600;1,400&family=Fredoka:wght@600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --navy: #0b3a5b;
+      --pink: #e6199a;
+      --pink-soft: #f06bb8;
+      --orange: #f5a623;
+      --cream: #fffaf0;
+      --lavender: #e9dcfb;
+      --purple: #5b3fa0;
+    }
+
+    html, body { height: 100%; }
+
+    body {
+      font-family: 'Figtree', sans-serif;
+      color: var(--navy);
+      background: linear-gradient(135deg, #ffffff 0%, #ffe9a6 50%, #f9b5d6 100%) fixed;
+    }
+
+    .app { height: 100vh; display: flex; flex-direction: column; }
+
+    /* ---------- Navbar ---------- */
+    .topbar {
+      background: rgba(255, 255, 255, .45);
+      backdrop-filter: blur(6px);
+      border-bottom: 1px solid rgba(240, 107, 184, .25);
+      padding: .35rem 1rem;
+      border-radius: 0 0 14px 14px;
+    }
+    .brand {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.5rem;
+      color: var(--pink);
+      letter-spacing: .5px;
+      text-decoration: none;
+      line-height: 1;
+    }
+    .topbar .nav-link {
+      color: var(--navy);
+      font-weight: 500;
+      font-size: 1.05rem;
+      padding: .25rem .6rem;
+    }
+    .topbar .nav-link.active { color: var(--pink); font-weight: 700; }
+    .topbar .nav-link:hover { color: var(--pink); }
+    .topbar .logout-btn { background: none; border: 0; }
+
+    /* ---------- Main ---------- */
+    .main { flex: 1; min-height: 0; padding: .5rem; }
+
+    /* Sidebar */
+    .sidebar {
+      height: 100%;
+      border: 1px solid #333;
+      border-radius: 8px;
+      background: linear-gradient(180deg, #fffdf6, #fff6e0);
+      padding: .5rem .4rem;
+      overflow: hidden;
+    }
+    .contact-scroll {
+      height: 100%;
+      overflow-y: auto;
+      direction: rtl;               /* ย้าย scrollbar ไปทางซ้าย */
+      padding-left: .25rem;
+    }
+    .contact-scroll > * { direction: ltr; }
+    .contact-scroll::-webkit-scrollbar { width: 6px; }
+    .contact-scroll::-webkit-scrollbar-track { background: #ffe8b8; border-radius: 10px; }
+    .contact-scroll::-webkit-scrollbar-thumb { background: var(--orange); border-radius: 10px; }
+    .contact-scroll { scrollbar-width: thin; scrollbar-color: var(--orange) #ffe8b8; }
+
+    .contact-link { display: block; color: inherit; text-decoration: none; }
+    .contact {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      border: 1px solid #333;
+      border-radius: 10px;
+      background: var(--cream);
+      padding: .6rem .8rem;
+      margin: 0 0 .5rem .5rem;
+      cursor: pointer;
+      transition: box-shadow .15s;
+    }
+    .contact:hover { box-shadow: 0 2px 8px rgba(245, 166, 35, .35); }
+    .contact.active { background: #fce4ec; border-color: var(--pink-soft); }
+
+    .avatar {
+      width: 42px; height: 42px; flex: none;
+      border-radius: 50%;
+      background: var(--lavender);
+      color: var(--purple);
+      display: grid; place-items: center;
+      font-size: 1.3rem;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    .contact .name { font-size: 1.05rem; font-weight: 600; line-height: 1.1; margin-bottom: 2px; }
+    .contact .preview {
+      font-size: .8rem; font-style: italic; color: #555;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .contact .info { min-width: 0; flex: 1; }
+
+    /* Chat */
+    .chat-col { height: 100%; display: flex; flex-direction: column; }
+    .messages {
+      flex: 1; min-height: 0; overflow-y: auto;
+      padding: 0 .5rem .5rem;
+      display: flex; flex-direction: column; gap: .5rem;
+    }
+    .messages::-webkit-scrollbar { width: 0; }
+
+    .msg-wrap { display: flex; flex-direction: column; }
+    .msg-wrap.me { align-items: flex-end; }
+    .msg-wrap.other { align-items: flex-start; }
+
+    .bubble {
+      max-width: 65%;
+      padding: .6rem .85rem;
+      font-size: 1rem;
+      line-height: 1.4;
+      border-radius: 16px;
+      border: 1px solid;
+      white-space: pre-line;
+      word-wrap: break-word;
+      overflow-wrap: anywhere;
+      box-shadow: 0 1px 2px rgba(0,0,0,.05);
+    }
+    .bubble.me    { background: var(--cream); border-color: var(--orange); }
+    .bubble.other { background: #fff8f9;      border-color: var(--pink-soft); }
+    .bubble.short { border-radius: 18px; padding: .4rem .8rem; }
+    .bubble img   { max-width: 100%; border-radius: 10px; display: block; }
+    .meta { font-size: .75rem; color: #888; margin-top: 2px; }
+
+    /* Empty state (ยังไม่ได้เลือกห้อง) */
+    .empty-state {
+      height: 100%;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: rgba(255,255,255,.4);
+      border-radius: 8px;
+      text-align: center;
+    }
+    .empty-state i { font-size: 4.5rem; color: var(--pink-soft); }
+
+    /* Input */
+    .composer {
+      margin: 0 .5rem;
+      display: flex; align-items: center;
+      background: #fff;
+      border: 2px solid var(--pink);
+      border-radius: 40px;
+      padding: .4rem .5rem .4rem 1.2rem;
+    }
+    .composer input {
+      flex: 1; border: 0; outline: 0; background: transparent;
+      font-size: 1rem; color: var(--navy);
+    }
+    .composer input::placeholder { color: #999; font-style: italic; }
+    .send-btn {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      border: 2px solid var(--pink);
+      background: #fff; color: var(--pink);
+      display: grid; place-items: center;
+      font-size: 1.2rem; padding: 0;
+      transition: .2s;
+    }
+    .send-btn:hover { background: var(--pink); color: #fff; }
+
+    /* ---------- Footer ---------- */
+    .footer {
+      background: rgba(255, 255, 255, .4);
+      backdrop-filter: blur(6px);
+      border-top: 1px solid rgba(240, 107, 184, .25);
+      border-radius: 14px 14px 0 0;
+      padding: .45rem 1rem;
+      font-size: .85rem;
+    }
+    .footer a { color: var(--navy); text-decoration: none; }
+    .footer a:hover { color: var(--pink); }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Navbar -->
+  <header class="topbar d-flex align-items-center justify-content-between">
+    <a href="{% url 'home' %}" class="brand">M8Match</a>
+    <nav class="nav align-items-center">
+      <a class="nav-link" href="#">Match</a>
+      <a class="nav-link" href="#">Board</a>
+      <a class="nav-link active" href="{% url 'chat:inbox' %}">Chat</a>
+      <a class="nav-link" href="#">Profile</a>
+      <a class="nav-link" href="#">Settings</a>
+      <!-- Django 5: logout ต้องเป็น POST -->
+      <form method="post" action="{% url 'logout' %}" class="m-0">
+        {% csrf_token %}
+        <button type="submit" class="nav-link logout-btn">Log Out</button>
+      </form>
+    </nav>
+  </header>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="row g-2 h-100">
+
+      <!-- รายการแชท (บนมือถือ: ถ้าเปิดห้องอยู่จะซ่อน เหมือน Instagram) -->
+      <aside class="col-12 col-md-4 col-lg-3 h-100 {% if room_id %}d-none d-md-block{% endif %}">
+        <div class="sidebar">
+          <div class="contact-scroll" id="contactList">
+            {% for conv in sidebar_conversations %}
+              <a href="{% url 'chat:room' conv.id %}" class="contact-link" data-conv-id="{{ conv.id }}">
+                <div class="contact {% if conv.is_active %}active{% endif %}">
+                  <div class="avatar">{{ conv.initial }}</div>
+                  <div class="info">
+                    <div class="name">{{ conv.other_user }}</div>
+                    <div class="preview">"{{ conv.last_message }}"</div>
+                  </div>
+                </div>
+              </a>
+            {% empty %}
+              <div class="text-center mt-4 text-muted small">ยังไม่มีประวัติการสนทนา</div>
+            {% endfor %}
+          </div>
+        </div>
+      </aside>
+
+      <!-- ฝั่งขวา -->
+      <section class="col-12 col-md-8 col-lg-9 h-100 {% if not room_id %}d-none d-md-block{% endif %}">
+        {% if room_id %}
+          <div class="chat-col">
+            <!-- ปุ่มย้อนกลับ (เฉพาะมือถือ) -->
+            <div class="d-md-none px-2 pb-1">
+              <a href="{% url 'chat:inbox' %}" class="text-decoration-none" style="color: var(--pink);">
+                <i class="bi bi-chevron-left"></i> แชททั้งหมด
+              </a>
+            </div>
+
+            <div class="messages" id="chat-messages">
+              {% for msg in messages %}
+                {% if msg.sender_id == request.user.id %}
+                  <div class="msg-wrap me">
+                    <div class="bubble me {% if msg.content|length < 15 and not msg.image %}short{% endif %}">{% if msg.image %}<img src="{% url 'chat:message_image' msg.id %}" alt="image">{% endif %}{{ msg.content }}</div>
+                    <div class="meta">Read | {{ msg.created_at|date:"H:i" }}</div>
+                  </div>
+                {% else %}
+                  <div class="msg-wrap other">
+                    <div class="bubble other {% if msg.content|length < 15 and not msg.image %}short{% endif %}">{% if msg.image %}<img src="{% url 'chat:message_image' msg.id %}" alt="image">{% endif %}{{ msg.content }}</div>
+                    <div class="meta">{{ msg.created_at|date:"H:i" }}</div>
+                  </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+
+            <form class="composer" id="chat-form">
+              <input type="text" id="chat-message-input" placeholder="Type Something Here..." autocomplete="off" autofocus>
+              <button class="send-btn" type="submit" aria-label="Send"><i class="bi bi-send"></i></button>
+            </form>
+          </div>
+        {% else %}
+          <!-- /chat/room/ : ยังไม่ได้เลือกห้อง -->
+          <div class="empty-state text-muted">
+            <i class="bi bi-chat-heart mb-3"></i>
+            <h5 class="fw-medium text-secondary">เลือกรายชื่อเพื่อนด้านซ้ายเพื่อเริ่มสนทนา</h5>
+          </div>
+        {% endif %}
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer d-flex align-items-center justify-content-between">
+    <span class="tag"><i class="bi bi-emoji-smile me-2"></i>It's better together!</span>
+    <span><a href="#">About Us</a> | <a href="#">Contact</a></span>
+  </footer>
+
+</div>
+
+{% if room_id %}
+<script>
+  const roomId = {{ room_id }};
+  const currentUserId = "{{ request.user.id }}";
+
+  const chatForm = document.getElementById("chat-form");
+  const messageInput = document.getElementById("chat-message-input");
+  const chatMessages = document.getElementById("chat-messages");
+  const contactList = document.getElementById("contactList");
+
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+
+  // ---------- WebSocket (เชื่อมใหม่อัตโนมัติถ้าหลุด) ----------
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  let socket;
+
+  function connect() {
+    socket = new WebSocket(`${protocol}//${window.location.host}/ws/chat/${roomId}/`);
+
+    socket.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        addMessage(data);
+        updateSidebar(data);
+      } catch (err) {
+        console.error("Error rendering message:", err);
+      }
+    };
+
+    socket.onclose = (e) => {
+      if (e.code === 4403) return;       // ไม่มีสิทธิ์เข้าห้องนี้ ไม่ต้องต่อใหม่
+      setTimeout(connect, 3000);
+    };
+  }
+  connect();
+
+  // ---------- วาดข้อความ (ใช้ textContent กัน XSS) ----------
+  function timeNow() {
+    const d = new Date();
+    return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+  }
+
+  function addMessage(data) {
+    const isMe = String(data.sender_id) === currentUserId;
+    const text = data.message || "";
+    const t = timeNow();
+
+    const wrap = document.createElement("div");
+    wrap.className = "msg-wrap " + (isMe ? "me" : "other");
+
+    const bubble = document.createElement("div");
+    bubble.className = "bubble " + (isMe ? "me" : "other") +
+      (text.length < 15 && !data.image_url ? " short" : "");
+
+    if (data.image_url) {
+      const img = document.createElement("img");
+      img.src = data.image_url;
+      img.alt = "image";
+      img.onload = () => { chatMessages.scrollTop = chatMessages.scrollHeight; };
+      bubble.appendChild(img);
+    }
+    if (text) bubble.appendChild(document.createTextNode(text));
+
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    meta.textContent = isMe ? `Read | ${t}` : t;
+
+    wrap.append(bubble, meta);
+    chatMessages.appendChild(wrap);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  // ---------- อัปเดตรายการแชททางซ้าย + ดันห้องนี้ขึ้นบนสุด ----------
+  function updateSidebar(data) {
+    const item = contactList.querySelector(`[data-conv-id="${roomId}"]`);
+    if (!item) return;
+    const preview = item.querySelector(".preview");
+    preview.textContent = `"${data.message || "📷 รูปภาพ"}"`;
+    contactList.prepend(item);
+  }
+
+  // ---------- ส่งข้อความ ----------
+  chatForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const text = messageInput.value.trim();
+    if (text === "" || socket.readyState !== WebSocket.OPEN) return;
+    socket.send(JSON.stringify({ message: text }));
+    messageInput.value = "";
+  });
+</script>
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
