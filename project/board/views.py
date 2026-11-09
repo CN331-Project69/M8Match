@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import ImproperlyConfigured, ValidationError, PermissionDenied
 from django.core.paginator import Paginator
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Q
@@ -168,6 +168,14 @@ def get_post_cards(posts, user, adapter=None):
                 image.image.url
                 for image in post.images.all()
                 if image.image
+            ],
+
+            "categories": [
+                {
+                    "id": category.id,
+                    "name": category.name,
+                }
+                for category in post.categories.all()
             ],
 
             # ข้อมูล Like
@@ -411,16 +419,13 @@ def my_posts_view(request):
 
     # กรองโพสต์ที่ถูกซ่อนออกอีกชั้น
     if hasattr(liked_posts_queryset, "filter"):
-        liked_posts_queryset = liked_posts_queryset.filter(
-            is_hidden=False
-        )
+        liked_posts_queryset = liked_posts_queryset.filter(is_hidden=False)
 
         if liked_posts_queryset is None:
             raise ImproperlyConfigured(
-                "get_liked_posts() must return a collection of Posts."
+                "Liked posts queryset cannot be None."
             )
 
-        # เตรียมข้อมูลผู้เขียน รูปภาพ และ Category
         if hasattr(liked_posts_queryset, "select_related"):
             liked_posts_queryset = (
                 liked_posts_queryset
@@ -428,11 +433,11 @@ def my_posts_view(request):
                 .prefetch_related("images", "categories")
             )
 
-        liked_posts = get_post_cards(
-            liked_posts_queryset,
-            request.user,
-            adapter
-        )
+    liked_posts = get_post_cards(
+        liked_posts_queryset,
+        request.user,
+        adapter,
+    )
 
     return render(
         request,
@@ -665,6 +670,7 @@ def post_comments(request, pk):
     return JsonResponse({"comments": comments}, encoder=DjangoJSONEncoder)
 
 
+
 @login_required
 @require_POST
 def create_comment(request, pk):
@@ -678,22 +684,25 @@ def create_comment(request, pk):
     content = request.POST.get("content", "").strip()
 
     if not content:
-        messages.error(request, "กรุณากรอกความคิดเห็น")
-        return redirect("board:board")
+        return JsonResponse(
+            {"error": "Please enter your comment."},
+            status=400
+        )
 
     if len(content) > 2000:
-        messages.error(request, "ความคิดเห็นต้องไม่เกิน 2,000 ตัวอักษร")
-        return redirect("board:board")
+        return JsonResponse(
+            {"error": "Maximum 2,000 characters."},
+            status=400
+        )
 
     adapter = get_board_adapter()
 
     if adapter is None:
-        return HttpResponse(
-            "Comment system is not connected yet.",
+        return JsonResponse(
+            {"error": "Comment system is not connected yet."},
             status=503
         )
 
-    # ตรวจสอบเนื้อหาก่อนอนุญาตให้บันทึก
     result = adapter.moderate_comment(content, request.user)
 
     if not isinstance(result, dict):
@@ -714,7 +723,7 @@ def create_comment(request, pk):
             "Moderation errors and warnings must be dictionaries."
         )
 
-    # ตรวจสอบรูปแบบข้อความที่ระบบ Moderation ส่งกลับ
+
     for collection in (errors, warnings):
         for item in collection.values():
             if not isinstance(item, (str, list, tuple)):
@@ -723,36 +732,53 @@ def create_comment(request, pk):
                 )
 
     if not result["is_allowed"]:
-        # แสดงเหตุผลที่ Moderation ปฏิเสธ
+        error_messages = []
+
         for field_errors in errors.values():
             if isinstance(field_errors, str):
-                messages.error(request, field_errors)
-            elif isinstance(field_errors, (list, tuple)):
-                for error in field_errors:
-                    messages.error(request, str(error))
+                error_messages.append(field_errors)
+            else:
+                error_messages.extend(str(e) for e in field_errors)
 
-        if not errors:
-            messages.error(
-                request,
-                "ความคิดเห็นนี้ไม่ผ่านการตรวจสอบ"
-            )
+        return JsonResponse(
+            {
+                "error": "; ".join(error_messages)
+                or "This comment was hidden due to a policy violation."
+            },
+            status=400
+        )
 
-        return redirect("board:board")
+    try:
+        comment = adapter.create_comment(
+            post,
+            request.user,
+            content
+        )
+    except ValidationError as e:
+        return JsonResponse(
+            {"error": "; ".join(e.messages)},
+            status=400
+        )
+    except PermissionDenied:
+        return JsonResponse(
+            {"error": "You don't have permission to comment."},
+            status=403
+        )
 
-    # บันทึกเฉพาะความคิดเห็นที่ผ่าน Moderation
-    adapter.create_comment(post, request.user, content)
+    warning_messages = []
 
-    # แสดงคำเตือนโดยไม่ปฏิเสธความคิดเห็น
     for warning_list in warnings.values():
         if isinstance(warning_list, str):
-            messages.warning(request, warning_list)
-        elif isinstance(warning_list, (list, tuple)):
-            for warning in warning_list:
-                messages.warning(request, str(warning))
+            warning_messages.append(warning_list)
+        else:
+            warning_messages.extend(str(w) for w in warning_list)
 
-    messages.success(request, "ส่งความคิดเห็นเรียบร้อยแล้ว")
-
-    return redirect("board:board")
+    return JsonResponse({
+        "success": True,
+        "comment_id": comment.id,
+        "message": "Comment submitted!",
+        "warnings": warning_messages
+    })
 
 
 @login_required
@@ -770,7 +796,7 @@ def report_post(request, pk):
     if not reason or len(reason) > 1000:
         messages.error(
             request,
-            "กรุณาระบุเหตุผลในการรายงาน (ไม่เกิน 1,000 ตัวอักษร)"
+            "Please provide a reason for reporting (Max 1,000 characters)."
         )
         return redirect("board:board")
 
@@ -783,15 +809,30 @@ def report_post(request, pk):
         )
 
     # ส่งข้อมูลให้ระบบ Report ของทีมตรวจสอบ
-    adapter.submit_post_report(
-        post.id,
-        request.user,
-        reason
-    )
+    
+    try:
+        adapter.submit_post_report(
+            post.id,
+            request.user,
+            reason
+        )
 
-    messages.success(request, "ส่งรายงานโพสต์เรียบร้อยแล้ว")
+    except ValidationError as e:
+        return JsonResponse(
+            {"error": "; ".join(e.messages)},
+            status=400
+        )
 
-    return redirect("board:board")
+    except PermissionDenied:
+        return JsonResponse(
+            {"error": "You don't have permission to comment."},
+            status=403
+        )
+
+    return JsonResponse({
+        "success": True,
+        "message": "Report submitted!"
+    })
 
 
 @login_required
@@ -802,36 +843,47 @@ def report_comment(request, comment_id):
     reason = request.POST.get("reason", "").strip()
 
     if not reason or len(reason) > 1000:
-        messages.error(
-            request,
-            "กรุณาระบุเหตุผลในการรายงาน (ไม่เกิน 1,000 ตัวอักษร)"
+        return JsonResponse(
+            {"error": "Please provide a reason for reporting (Max 1,000 characters)."},
+            status=400
         )
-        return redirect("board:board")
 
     adapter = get_board_adapter()
 
     if adapter is None:
-        return HttpResponse(
-            "Report system is not connected yet.",
+        return JsonResponse(
+            {"error": "Report system is not connected yet."},
             status=503
         )
 
-    # ค้นหา Comment จริงผ่าน Adapter โดยไม่ผูกกับชื่อ Model ของเพื่อน
     comment = adapter.get_comment_for_report(comment_id)
 
     if comment is None:
-        return HttpResponse(
-            "Comment not found.",
+        return JsonResponse(
+            {"error": "Comment not found."},
             status=404
         )
 
-    # ส่ง Comment object ให้ระบบ Report
-    adapter.submit_comment_report(
-        comment,
-        request.user,
-        reason
-    )
+    try:
+        adapter.submit_comment_report(
+            comment,
+            request.user,
+            reason
+        )
 
-    messages.success(request, "ส่งรายงานความคิดเห็นเรียบร้อยแล้ว")
+    except ValidationError as e:
+        return JsonResponse(
+            {"error": "; ".join(e.messages)},
+            status=400
+        )
 
-    return redirect("board:board")
+    except PermissionDenied:
+        return JsonResponse(
+            {"error": "You don't have permission to comment."},
+            status=403
+        )
+
+    return JsonResponse({
+        "success": True,
+        "message": "Report submitted!"
+    })

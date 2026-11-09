@@ -129,8 +129,10 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 LOGIN_URL = "/login/"
-LOGIN_REDIRECT_URL = "home"
-LOGOUT_REDIRECT_URL = "home"
+LOGIN_REDIRECT_URL = "accounts:home"
+LOGOUT_REDIRECT_URL = "accounts:home"
+
+BOARD_INTEGRATION_ADAPTER = "board.interaction_adapter.M8MatchBoardAdapter"
 
 ASGI_APPLICATION = "project.asgi.application"
 
