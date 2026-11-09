@@ -19,7 +19,7 @@ from .services import (
     update_post as update_post_service,
     delete_post as delete_post_service,
 )
-from .integrations import get_board_adapter
+from .integrations import get_board_adapter, default_chat_url, default_public_profile_url
 
 
 # จำนวนตัวอักษรที่ Guest สามารถเห็นได้
@@ -96,18 +96,26 @@ def get_post_cards(posts, user, adapter=None):
         if profile and profile.profile_picture:
             profile_picture = profile.profile_picture.url
 
-        # เตรียม URL สำหรับเชื่อมไป Public Profile
+        # เตรียม URL สำหรับเชื่อมไป Public Profile และปุ่มแชท
+        # (หน้าโปรไฟล์และแชทต้อง Login ก่อน Guest จึงเห็นแค่ชื่อ)
         profile_url = None
+        chat_url = None
 
-        if adapter is not None:
+        if user.is_authenticated:
             author_id = post.author_id
 
             if author_id not in profile_urls:
-                profile_urls[author_id] = (
-                    adapter.get_public_profile_url(post.author)
-                )
+                url = None
+                if adapter is not None:
+                    url = adapter.get_public_profile_url(post.author)
+                # Adapter ยังไม่เชื่อม/ไม่มี URL -> ใช้หน้าโปรไฟล์มาตรฐานของเว็บ
+                profile_urls[author_id] = url or default_public_profile_url(post.author)
 
             profile_url = profile_urls[author_id]
+
+            # ไม่ต้องมีปุ่มแชทกับตัวเอง
+            if author_id != user.id:
+                chat_url = default_chat_url(post.author)
 
         # --------------------------------------------
         # ข้อมูล Like และ Comment
@@ -145,6 +153,7 @@ def get_post_cards(posts, user, adapter=None):
             "author_name": author_name,
             "author_picture": profile_picture,
             "author_profile_url": profile_url,
+            "author_chat_url": chat_url,
 
             "created_at": post.created_at,
             "updated_at": post.updated_at,

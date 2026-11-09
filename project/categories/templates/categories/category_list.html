@@ -1,29 +1,29 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Categories</title>
-</head>
-<body>
-    <main>
-        <h1>Categories</h1>
+{% extends "base.html" %}
 
-        {% if categories %}
-            <ul>
-                {% for category in categories %}
-                    <li>
-                        <h2>{{ category.name }}</h2>
+{% block title %}Categories | M8Match{% endblock %}
+{% block body_class %}landing-page{% endblock %}
 
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<main class="landing container pb-5" style="max-width: 920px;">
+    <h1 class="profile-name text-center mb-4">Categories</h1>
+
+    {% if categories %}
+        <ul class="category-grid">
+            {% for category in categories %}
+                <li>
+                    <a href="{% url 'categories:category-detail' category.slug %}" class="category-card">
+                        <h2 class="profile-section-title mb-1">{{ category.name }}</h2>
                         {% if category.description %}
-                            <p>{{ category.description }}</p>
+                            <p class="mb-0">{{ category.description|truncatewords:20 }}</p>
                         {% endif %}
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>No categories available.</p>
-        {% endif %}
-    </main>
-</body>
-</html>
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="profile-card profile-empty text-center mb-0">No categories available.</p>
+    {% endif %}
+</main>
+{% endblock %}

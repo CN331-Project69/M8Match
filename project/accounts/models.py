@@ -10,5 +10,10 @@ class Profile(models.Model):
     # ImageField ต้องติดตั้งไลบรารี Pillow (pip install Pillow) ก่อนรัน makemigrations
     profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
 
+    @property
+    def skill_list(self):
+        """แยก skills ที่คั่นด้วย , เป็น list (ตัดช่องว่างและค่าว่างทิ้ง)"""
+        return [s.strip() for s in self.skills.split(",") if s.strip()]
+
     def __str__(self):
         return f"Profile of {self.user.username}"

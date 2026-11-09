@@ -1,0 +1,458 @@
+
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Find Match | M8Match</title>
+
+    <!-- Bootstrap 5 -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'matching/css/find_match.css' %}">
+    <link rel="stylesheet" href="{% static 'css/m8-navbar.css' %}">
+</head>
+
+<body>
+
+{% if new_match %}
+<div class="match-popup" id="matchPopup" role="dialog" aria-modal="true" aria-labelledby="matchPopupTitle">
+    <div class="popup-content">
+
+        <button
+            type="button"
+            class="popup-close"
+            onclick="closeMatchPopup()"
+            aria-label="Close"
+        >
+            &times;
+        </button>
+
+        <div class="match-label">IT'S A MATCH!</div>
+
+        <h2 id="matchPopupTitle">You found your teammate!</h2>
+
+        {% if new_match.profile_picture %}
+            <img
+                src="{{ new_match.profile_picture }}"
+                class="popup-avatar"
+                alt="Profile Picture"
+            >
+        {% else %}
+            <div class="popup-avatar no-avatar">?</div>
+        {% endif %}
+
+        <h3>{{ new_match.display_name }}</h3>
+
+        <p>
+            You and {{ new_match.display_name }}
+            liked each other!
+        </p>
+
+        <div class="popup-actions d-flex gap-2">
+
+            <button
+                type="button"
+                onclick="closeMatchPopup()"
+                class="btn continue-button"
+            >
+                Continue Swiping
+            </button>
+
+            {% if new_match.user_id %}
+                <!-- สร้างห้องแชท (หรือเปิดห้องเดิมถ้ามีแล้ว) แล้วพาไปหน้าแชททันที -->
+                <form method="post" action="{% url 'chat:start' new_match.user_id %}" class="popup-chat-form">
+                    {% csrf_token %}
+                    <button type="submit" class="btn chat-button">
+                        Chat with {{ new_match.display_name }}
+                    </button>
+                </form>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+{% endif %}
+
+
+<!-- Navbar (ใช้ร่วมกันทุกหน้า) -->
+{% include "partials/navbar.html" %}
+
+<div class="page-container container-fluid d-flex flex-column">
+
+
+    <!-- Main Content -->
+    <main class="main-content container-fluid flex-grow-1">
+
+        <h1 class="page-title">
+            Find Your Match
+        </h1>
+
+        <p class="page-description">
+            Discover people and teams that match your skills.
+        </p>
+
+        {% if has_matches %}
+            <div class="text-center mb-4">
+                <a href="{% url 'create_project' %}" class="back-button">
+                    Edit Your Project
+                </a>
+            </div>
+        {% endif %}
+
+
+        <!-- Messages -->
+        {% if messages %}
+            <div class="messages">
+
+                {% for message in messages %}
+                    <div class="message {{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+
+            </div>
+        {% endif %}
+
+
+        {% if has_matches %}
+
+            <div class="match-grid mx-auto">
+
+                {% for item in matches %}
+
+                    {% with candidate=item.project %}
+
+                        <article class="match-card" data-swipe-card>
+
+                            <!-- Profile Picture -->
+                            <div class="profile-picture">
+
+                                {% if candidate.user.profile.profile_picture %}
+                                    <img
+                                        src="{{ candidate.user.profile.profile_picture.url }}"
+                                        alt="Profile Picture"
+                                    >
+                                {% else %}
+                                    <div class="no-picture">
+                                        No Image
+                                    </div>
+                                {% endif %}
+
+                            </div>
+
+
+                            <!-- Card Content -->
+                            <div class="card-content">
+
+                                <h2>
+                                    {{ candidate.user.profile.display_name|default:candidate.user.username }}
+                                </h2>
+
+                                <p class="username">
+                                    @{{ candidate.user.username }}
+                                </p>
+
+
+                                <!-- About Me -->
+                                <div class="about-section">
+
+                                    <h3>About Me</h3>
+
+                                    <p>
+                                        {{ candidate.user.profile.about_me|default:"No introduction yet." }}
+                                    </p>
+
+                                </div>
+
+
+                                <!-- Team Information -->
+                                {% if candidate.team_details %}
+
+                                    <div class="team-section">
+
+                                        <h3>Team Information</h3>
+
+                                        <div class="skill-list">
+
+                                            {% for category in candidate.team_categories.all %}
+
+                                                {% if category.is_active %}
+                                                    <span class="skill-tag team-skill">
+                                                        {{ category.name }}
+                                                    </span>
+                                                {% endif %}
+
+                                            {% empty %}
+                                                <p>No team skills added yet.</p>
+                                            {% endfor %}
+
+                                        </div>
+
+                                        <p>
+                                            {{ candidate.team_details }}
+                                        </p>
+
+                                    </div>
+
+                                {% endif %}
+
+
+                                <!-- Matching Skills -->
+                                <div class="skills-section">
+
+                                    <h3>Matching Skills</h3>
+
+                                    <div class="skill-list">
+
+                                        {% for skill in item.all_skills %}
+
+                                            <span class="skill-tag {% if skill.is_matched %}matched{% else %}unmatched{% endif %}">
+                                                {{ skill.name }}
+                                            </span>
+
+                                        {% empty %}
+                                            <p>No required skills added yet.</p>
+                                        {% endfor %}
+
+                                    </div>
+
+                                    <p>
+                                        {{ candidate.requirements_details|default:"No additional details provided." }}
+                                    </p>
+
+                                </div>
+
+                            </div>
+                            <!-- End Card Content -->
+
+
+                            <!-- Swipe Buttons -->
+                            <div class="swipe-actions d-flex justify-content-center align-items-center">
+
+                                <form method="post" class="swipe-form">
+
+                                    {% csrf_token %}
+
+                                    <input
+                                        type="hidden"
+                                        name="target_user_id"
+                                        value="{{ candidate.user.id }}"
+                                    >
+
+                                    <input
+                                        type="hidden"
+                                        name="direction"
+                                        value="left"
+                                    >
+
+                                    <button type="submit" class="btn pass-button">
+                                        ✕ Pass
+                                    </button>
+
+                                </form>
+
+
+                                <form method="post" class="swipe-form">
+
+                                    {% csrf_token %}
+
+                                    <input
+                                        type="hidden"
+                                        name="target_user_id"
+                                        value="{{ candidate.user.id }}"
+                                    >
+
+                                    <input
+                                        type="hidden"
+                                        name="direction"
+                                        value="right"
+                                    >
+
+                                    <button type="submit" class="btn like-button">
+                                        ♥ Like
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+                        </article>
+
+                    {% endwith %}
+
+                {% endfor %}
+
+            </div>
+
+
+        {% else %}
+
+            <!-- Empty State -->
+            <div class="empty-state">
+
+                <h2>No Matches Found</h2>
+
+                <p>
+                    We couldn't find anyone matching your requirements yet.
+                    Try updating your skills or project details.
+                </p>
+
+                <a href="{% url 'create_project' %}" class="back-button">
+                    Edit Your Project
+                </a>
+
+            </div>
+
+        {% endif %}
+
+    </main>
+
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>It's better together!</p>
+    </footer>
+
+</div>
+
+
+<!-- Swipe JavaScript -->
+<script>
+
+document.querySelectorAll("[data-swipe-card]").forEach(card => {
+
+    let startX = 0;
+    let currentX = 0;
+    let isDragging = false;
+
+    card.addEventListener("pointerdown", event => {
+
+        if (event.target.closest("button, form, a")) {
+            return;
+        }
+
+        startX = event.clientX;
+        currentX = startX;
+        isDragging = true;
+
+        card.setPointerCapture(event.pointerId);
+        card.style.transition = "none";
+
+    });
+
+
+    card.addEventListener("pointermove", event => {
+
+        if (!isDragging) return;
+
+        currentX = event.clientX;
+
+        const distance = currentX - startX;
+
+        card.style.transform =
+            `translateX(${distance * 0.6}px) rotate(${distance * 0.008}deg)`;
+
+    });
+
+
+    card.addEventListener("pointerup", () => {
+
+        if (!isDragging) return;
+
+        isDragging = false;
+
+        const distance = currentX - startX;
+
+        if (distance < -100) {
+
+            swipeCard("left");
+
+        } else if (distance > 100) {
+
+            swipeCard("right");
+
+        } else {
+
+            card.style.transition = "transform 0.2s ease";
+            card.style.transform = "";
+
+        }
+
+    });
+
+
+    card.addEventListener("pointercancel", () => {
+
+        isDragging = false;
+
+        card.style.transition = "transform 0.15s ease-out";
+        card.style.transform = "";
+
+    });
+
+
+    function swipeCard(direction) {
+
+        const input = card.querySelector(
+            `input[name="direction"][value="${direction}"]`
+        );
+
+        if (!input) return;
+
+        const form = input.closest("form");
+
+        card.style.transition = "transform 0.15s ease-out";
+
+        card.style.transform =
+            direction === "right"
+                ? "translateX(110%)"
+                : "translateX(-110%)";
+
+        setTimeout(() => {
+            form.requestSubmit();
+        }, 150);
+
+    }
+
+});
+
+
+function closeMatchPopup() {
+
+    const popup = document.getElementById("matchPopup");
+
+    if (popup) {
+        popup.remove();
+    }
+
+}
+
+// Popup Match: โฟกัสปุ่ม Chat ทันที และกด Esc = ปัดต่อ
+(function () {
+    const popup = document.getElementById("matchPopup");
+    if (!popup) return;
+
+    const chatButton = popup.querySelector(".chat-button");
+    (chatButton || popup.querySelector(".continue-button"))?.focus();
+
+    document.addEventListener("keydown", event => {
+        if (event.key === "Escape") closeMatchPopup();
+    });
+})();
+
+</script>
+
+
+<!-- Bootstrap JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

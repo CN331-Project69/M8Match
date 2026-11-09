@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}{% firstof profile.display_name profile.user.username %} | M8Match{% endblock %}
+{% block body_class %}landing-page{% endblock %}
+
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<main class="landing profile-page container pb-5">
+
+    {% include "accounts/_profile_messages.html" %}
+
+    {% firstof profile.display_name profile.user.username as shown_name %}
+
+    <section class="profile-card">
+        <div class="d-flex flex-column flex-md-row align-items-center gap-4 text-center text-md-start">
+            <div class="profile-avatar">
+                {% if profile.profile_picture %}
+                    <img src="{{ profile.profile_picture.url }}" alt="Profile picture of {{ shown_name }}">
+                {% else %}
+                    <span aria-hidden="true">{{ shown_name|first|upper }}</span>
+                {% endif %}
+            </div>
+
+            <div class="flex-grow-1 min-w-0">
+                <h1 class="profile-name mb-1">{{ shown_name }}</h1>
+                <p class="profile-handle mb-1">@{{ profile.user.username }}</p>
+                {% if is_own_profile and profile.user.email %}
+                    <p class="profile-handle mb-0">{{ profile.user.email }}</p>
+                {% endif %}
+            </div>
+
+            {% if is_own_profile %}
+                <a href="{% url 'edit_profile' %}" class="btn btn-m8 btn-m8-sm btn-m8-login align-self-md-start">
+                    Edit Profile
+                </a>
+            {% else %}
+                <!-- เปิดห้องแชทกับคนนี้ (ใช้ห้องเดิมถ้ามีอยู่แล้ว) -->
+                <form method="post" action="{% url 'chat:start' profile.user.id %}" class="m-0 align-self-md-start">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-m8 btn-m8-sm btn-m8-login">Message</button>
+                </form>
+            {% endif %}
+        </div>
+
+        <div class="profile-section">
+            <h2 class="profile-section-title">About me</h2>
+            {% if profile.about_me %}
+                <p class="profile-about mb-0">{{ profile.about_me }}</p>
+            {% else %}
+                {% if is_own_profile %}
+                    <p class="profile-about profile-empty mb-0">Tell your future teammates who you are. <a href="{% url 'edit_profile' %}">Add an intro</a></p>
+                {% else %}
+                    <p class="profile-about profile-empty mb-0">No introduction yet.</p>
+                {% endif %}
+            {% endif %}
+        </div>
+
+        <div class="profile-section">
+            <h2 class="profile-section-title">Skills &amp; Interests</h2>
+            {% with skills=profile.skill_list %}
+                {% if skills %}
+                    <ul class="skill-tags">
+                        {% for skill in skills %}
+                            <li class="skill-tag">{{ skill }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    {% if is_own_profile %}
+                        <p class="profile-empty mb-0">
+                            Enter your skills so others can see what you're made of! <a href="{% url 'edit_profile' %}">Add skills</a>
+                        </p>
+                    {% else %}
+                        <p class="profile-empty mb-0">No skills added yet.</p>
+                    {% endif %}
+                {% endif %}
+            {% endwith %}
+        </div>
+    </section>
+
+</main>
+{% endblock %}

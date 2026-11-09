@@ -3,6 +3,8 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth import login
 from django.urls import reverse_lazy
 from .forms import RegisterForm
+from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import Profile
 from django.shortcuts import redirect
@@ -39,11 +41,15 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     model = Profile
     form_class = ProfileForm
     template_name = "accounts/profile.html"
-    success_url = reverse_lazy("profile_update")
+    success_url = reverse_lazy("profile_detail")
 
     def get_object(self, queryset=None):
         profile, created = Profile.objects.get_or_create(user=self.request.user)
         return profile
+
+    def form_valid(self, form):
+        messages.success(self.request, "Your profile has been updated.")
+        return super().form_valid(form)
 
 
 class ProfileDetailView(LoginRequiredMixin, DetailView):
@@ -55,35 +61,29 @@ class ProfileDetailView(LoginRequiredMixin, DetailView):
         profile, _ = Profile.objects.get_or_create(user=self.request.user)
         return profile
 
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["is_own_profile"] = True
+        return ctx
 
-class MatchView(LoginRequiredMixin, TemplateView):
-    template_name = "accounts/match.html"
+
+class UserProfileView(ProfileDetailView):
+    """ดูโปรไฟล์ของคนอื่น (อ่านอย่างเดียว) มีปุ่ม Message ไปหน้าแชท"""
+
+    def get(self, request, *args, **kwargs):
+        # เปิดโปรไฟล์ตัวเองผ่านลิงก์นี้ -> ไปหน้าโปรไฟล์ของตัวเองที่แก้ไขได้
+        if kwargs["username"] == request.user.get_username():
+            return redirect("profile_detail")
+        return super().get(request, *args, **kwargs)
+
+    def get_object(self, queryset=None):
+        user = get_object_or_404(
+            get_user_model(), username=self.kwargs["username"], is_active=True
+        )
+        profile, _ = Profile.objects.get_or_create(user=user)
+        return profile
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-
-        skipped = self.request.session.get("skipped_profiles", [])
-
-        candidate = (
-            Profile.objects.select_related("user")
-            .exclude(user=self.request.user)
-            .exclude(pk__in=skipped)
-            .order_by("?")
-            .first()
-        )
-        ctx["profile"] = candidate
+        ctx["is_own_profile"] = False
         return ctx
-
-    def post(self, request, *args, **kwargs):
-        action = request.POST.get("action")
-        profile_id = request.POST.get("profile_id")
-
-        if profile_id and action == "skip":
-            skipped = request.session.get("skipped_profiles", [])
-            skipped.append(int(profile_id))
-            request.session["skipped_profiles"] = skipped
-        elif profile_id and action == "match":
-            # TODO: บันทึก Match model ใน feature ถัดไป
-            messages.success(request, "You liked this person!")
-
-        return redirect("match")

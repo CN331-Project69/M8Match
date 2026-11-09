@@ -1,3 +1,23 @@
-<h1>{{ category.name }}</h1>
+{% extends "base.html" %}
 
-<p>{{ category.description }}</p>
+{% block title %}{{ category.name }} | M8Match{% endblock %}
+{% block body_class %}landing-page{% endblock %}
+
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<main class="landing container pb-5" style="max-width: 920px;">
+    <section class="profile-card">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+            <h1 class="profile-name mb-0">{{ category.name }}</h1>
+            <a href="{% url 'categories:category-list' %}" class="btn btn-m8 btn-m8-sm btn-m8-register">&laquo; All Categories</a>
+        </div>
+
+        {% if category.description %}
+            <p class="profile-about mb-0">{{ category.description }}</p>
+        {% else %}
+            <p class="profile-empty mb-0">No description yet.</p>
+        {% endif %}
+    </section>
+</main>
+{% endblock %}

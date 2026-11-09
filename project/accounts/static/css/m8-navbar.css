@@ -1,0 +1,122 @@
+/* =====================================================================
+   M8Match: Navbar กลางของทุกหน้า
+   ไฟล์นี้ไม่พึ่ง CSS อื่น (ใช้ได้ทั้งหน้าที่ใช้ m8match.css และหน้าที่มี CSS ของตัวเอง)
+   ===================================================================== */
+@import url("https://fonts.googleapis.com/css2?family=Chango&family=Figtree:wght@400;600;700&display=swap");
+
+.m8-navbar {
+    --m8n-yellow: #ffb81c;
+    --m8n-yellow-text: #9a5c00;   /* เหลืองเข้ม อ่านง่ายบนพื้นครีม */
+    --m8n-pink: #e0359b;
+    --m8n-pink-text: #b81c76;     /* ชมพูเข้ม อ่านง่ายบนพื้นชมพูอ่อน */
+    --m8n-pink-soft: #fdeaf4;
+    --m8n-cream: #fffcf5;
+    --m8n-ink: #14284b;
+
+    position: relative;
+    z-index: 50;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1.25rem;
+    padding: 0.9rem clamp(1rem, 3vw, 1.75rem);
+    font-family: "Figtree", system-ui, sans-serif;
+}
+
+/* ลอยทับด้านบน สำหรับหน้าที่จัดเนื้อหาไว้กลางจอ */
+.m8-navbar--overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+}
+
+.m8-navbar .m8-navbar__brand {
+    font-family: "Chango", "Figtree", sans-serif;
+    font-size: clamp(1.5rem, 4vw, 2.1rem);
+    line-height: 1;
+    letter-spacing: 0.02em;
+    color: var(--m8n-cream);
+    -webkit-text-stroke: 1.5px var(--m8n-pink);
+    paint-order: stroke fill;
+    text-shadow: 0 2px 6px rgba(224, 53, 155, 0.25);
+    text-decoration: none;
+}
+.m8-navbar .m8-navbar__brand:hover { color: #fff; }
+
+.m8-navbar__links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin: 0 0 0 auto;
+}
+
+.m8-navbar__logout { margin: 0; }
+
+/* ปุ่มทรงแคปซูล กรอบสองชั้นแบบหน้า Home */
+.m8-navbar .m8-pill {
+    display: inline-block;
+    padding: 0.3rem 1.1rem;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.4;
+    color: var(--m8n-yellow-text);
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    background: var(--m8n-cream);
+    border: 2px solid var(--m8n-cream);
+    border-radius: 999px;
+    box-shadow: 0 0 0 2px var(--m8n-yellow);
+    outline: 2px solid rgba(255, 184, 28, 0.45);
+    outline-offset: 2px;
+    transition: transform 0.15s ease, background-color 0.15s ease;
+}
+.m8-navbar .m8-pill:hover {
+    transform: translateY(-2px);
+    background: #fff;
+    color: var(--m8n-yellow-text);
+}
+
+.m8-navbar .m8-pill--pink {
+    color: var(--m8n-pink-text);
+    background: var(--m8n-pink-soft);
+    border-color: var(--m8n-pink-soft);
+    box-shadow: 0 0 0 2px var(--m8n-pink);
+    outline-color: rgba(224, 53, 155, 0.45);
+}
+.m8-navbar .m8-pill--pink:hover { color: var(--m8n-pink-text); }
+
+/* เมนูของหน้าที่เปิดอยู่: เติมสีทึบ */
+.m8-navbar .m8-pill.is-active,
+.m8-navbar .m8-pill.is-active:hover {
+    color: var(--m8n-ink);
+    background: var(--m8n-yellow);
+    border-color: var(--m8n-yellow);
+}
+.m8-navbar .m8-pill--pink.is-active,
+.m8-navbar .m8-pill--pink.is-active:hover {
+    color: #fff;
+    background: var(--m8n-pink);
+    border-color: var(--m8n-pink);
+}
+
+.m8-navbar .m8-pill:focus-visible {
+    outline: 3px solid var(--m8n-ink);
+    outline-offset: 3px;
+}
+
+@media (max-width: 576px) {
+    .m8-navbar { justify-content: center; }
+    .m8-navbar__links { justify-content: center; margin-left: 0; gap: 0.6rem; }
+    .m8-navbar .m8-pill { padding: 0.25rem 0.85rem; font-size: 0.92rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .m8-navbar .m8-pill { transition: none; }
+    .m8-navbar .m8-pill:hover { transform: none; }
+}

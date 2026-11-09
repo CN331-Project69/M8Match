@@ -1,0 +1,435 @@
+
+/* ========================================
+   General
+======================================== */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    color: #35485A;
+    background: linear-gradient(
+        120deg,
+        #F9D6A5,
+        #F5C2D9,
+        #E78CC3
+    );
+    min-height: 100vh;
+    /* navbar อยู่บนสุด ส่วน .page-container ยืดเต็มพื้นที่ที่เหลือ */
+    display: flex;
+    flex-direction: column;
+}
+
+.page-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+}
+
+
+.back-button {
+    color: #35485A;
+    background-color: #FCE8F1;
+    padding: 9px 16px;
+    border: 2px solid #E6A4C7;
+    border-radius: 10px;
+    font-weight: bold;
+}
+
+.back-button:hover {
+    background-color: #F5C2D9;
+    color: #35485A;
+}
+
+
+/* ========================================
+   Main Content
+======================================== */
+
+.main-content {
+    width: 100%;
+    max-width: 1400px;
+    margin: 30px auto;
+    flex: 1;
+}
+
+.page-title {
+    font-size: 30px;
+    margin-bottom: 8px;
+    color: #35485A;
+}
+
+.page-description {
+    max-width: 680px;
+    margin: 0 auto 28px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: #526273;
+}
+
+
+/* ========================================
+   Project Boxes
+======================================== */
+
+.project-box {
+    height: 100%;
+    padding: 24px;
+    background-color: #FFF9ED;
+    border: 2px solid #E9B7D1;
+    border-radius: 16px;
+}
+
+.project-box h2 {
+    font-size: 21px;
+    margin-bottom: 12px;
+    color: #C84C91;
+}
+
+.box-description {
+    font-size: 13px;
+    line-height: 1.7;
+    color: #657586;
+    margin-bottom: 18px;
+}
+
+
+/* ========================================
+   Profile
+======================================== */
+
+.profile-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    width: 100%;
+    min-width: 0;
+    text-align: center;
+}
+
+.profile-picture {
+    width: 80px;
+    height: 80px;
+    flex: 0 0 80px;
+    overflow: hidden;
+    border-radius: 50%;
+    border: 2px solid #E9B7D1;
+}
+
+.profile-picture img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.profile-picture p {
+    font-size: 11px;
+}
+
+.profile-info {
+    width: 100%;
+    min-width: 0;
+    text-align: left;
+    overflow-wrap: anywhere;
+}
+
+.profile-info h3 {
+    color: #C84C91;
+    font-size: 20px;
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+.profile-info > p {
+    font-size: 14px;
+    line-height: 1.7;
+    margin-bottom: 18px;
+    color: #35485A;
+}
+
+.profile-skills {
+    background-color: #FCE8F1;
+    border: 1px solid #E9B7D1;
+    border-radius: 10px;
+    padding: 12px;
+}
+
+.profile-skills strong {
+    display: block;
+    color: #C84C91;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.profile-skills p {
+    font-size: 14px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+    color: #35485A;
+    margin-bottom: 0;
+}
+
+
+/* ========================================
+   Category Selection
+======================================== */
+
+.category-selection {
+    margin-top: 16px;
+}
+
+.category-selection h3 {
+    color: #C84C91;
+    font-size: 16px;
+    margin-bottom: 9px;
+}
+
+.requirements-box .category-selection .box-description {
+    margin-top: 0;
+    margin-bottom: 16px;
+}
+
+
+/* ========================================
+   Category Dropdown
+======================================== */
+
+.category-add-row {
+    display: block;
+    margin-bottom: 14px;
+}
+
+.category-select {
+    width: 100%;
+    padding: 13px 18px;
+    border: 1px solid #E9B7D1;
+    border-radius: 999px;
+    background-color: #FFF9ED;
+    color: #35485A;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.category-select:focus {
+    border-color: #D85A9C;
+    box-shadow: 0 0 0 3px rgba(216, 90, 156, 0.15);
+}
+
+
+/* ========================================
+   Selected Category Chips
+======================================== */
+
+.selected-categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    min-height: 10px;
+}
+
+.selected-category {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 8px 12px;
+    border: 1px solid #D85A9C;
+    border-radius: 999px;
+    background-color: #FCE8F1;
+    color: #35485A;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.remove-category-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background-color: #D85A9C;
+    color: white;
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.remove-category-button:hover {
+    background-color: #C84C91;
+}
+
+
+/* ========================================
+   Hidden Checkboxes
+======================================== */
+
+.category-checkboxes[hidden] {
+    display: none !important;
+}
+
+
+/* ========================================
+   Form Fields
+======================================== */
+
+.team-details,
+.requirements-details {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.team-details label,
+.requirements-details label {
+    font-size: 14px;
+    font-weight: bold;
+    color: #35485A;
+}
+
+.team-details textarea,
+.requirements-details textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 12px;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #35485A;
+    background-color: #FFFFFF;
+    border: 1px solid #E6A4C7;
+    border-radius: 10px;
+    resize: vertical;
+}
+
+.team-details textarea:focus,
+.requirements-details textarea:focus {
+    border-color: #D85A9C;
+    box-shadow: 0 0 0 3px rgba(216, 90, 156, 0.12);
+}
+
+.team-details textarea::placeholder,
+.requirements-details textarea::placeholder {
+    color: #A5A5A5;
+}
+
+
+/* ========================================
+   Validation
+======================================== */
+
+.category-error {
+    color: #D93025;
+    font-size: 13px;
+    margin-top: 8px;
+    font-weight: 600;
+}
+
+
+/* ========================================
+   Match Button
+======================================== */
+
+.match-action {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 25px;
+}
+
+.match-button {
+    background-color: #F3B84F;
+    color: #FFFFFF;
+    border: 2px solid #E7A936;
+    border-radius: 12px;
+    padding: 12px 38px;
+    font-size: 17px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.match-button:hover {
+    background-color: #EBAA37;
+    color: #FFFFFF;
+}
+
+
+/* ========================================
+   Footer
+======================================== */
+
+.footer {
+    background-color: #FCE8F1;
+    border: 2px solid #E9B7D1;
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-size: 13px;
+}
+
+.footer p {
+    margin-bottom: 0;
+}
+
+
+/* ========================================
+   Responsive
+======================================== */
+
+@media (max-width: 991.98px) {
+    .project-box {
+        min-height: auto;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .page-container {
+        padding: 8px;
+    }
+
+    .back-button {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+
+    .main-content {
+        margin: 22px auto;
+    }
+
+    .page-title {
+        font-size: 24px;
+    }
+
+    .page-description {
+        font-size: 13px;
+        margin-bottom: 22px;
+    }
+
+    .project-box {
+        padding: 18px;
+    }
+
+    .category-select {
+        font-size: 13px;
+    }
+
+    .selected-category {
+        font-size: 12px;
+    }
+
+    .match-action {
+        justify-content: center;
+    }
+
+    .match-button {
+        width: 100%;
+    }
+}

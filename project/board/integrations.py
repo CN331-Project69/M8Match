@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
+from django.urls import NoReverseMatch, reverse
 from django.utils.module_loading import import_string
 
 
@@ -69,6 +70,14 @@ class BoardIntegrationAdapter(ABC):
 
         อนุญาตเฉพาะผู้ใช้ที่ Login แล้ว
         Guest ห้ามได้รับเนื้อหา Comment จาก Backend
+
+        แต่ละ Comment เป็น Dictionary:
+        - ต้องมี: id, author_name, content, created_at
+        - ไม่บังคับ: author_id
+        - ไม่บังคับ: author_profile_url  -> ชื่อผู้เขียนจะกดไปดูโปรไฟล์ได้
+          (ใช้ default_public_profile_url(comment.author) ได้เลย)
+        - ไม่บังคับ: author_chat_url     -> มีปุ่ม Message ไปแชทกับผู้เขียน
+          (ใช้ default_chat_url(comment.author) ได้เลย)
         """
 
     @abstractmethod
@@ -150,6 +159,28 @@ class BoardIntegrationAdapter(ABC):
         ค้นหา Comment จริงจาก ID
         คืนค่า Comment object หรือ None หากไม่พบ
         """
+
+
+def default_public_profile_url(user):
+    """
+    URL หน้าโปรไฟล์ของผู้ใช้ในเว็บนี้ (/users/<username>/)
+    Board ใช้ค่านี้เมื่อ Adapter ยังไม่ได้เชื่อม หรือคืน None
+    """
+    try:
+        return reverse("user_profile", args=[user.get_username()])
+    except NoReverseMatch:
+        return None
+
+
+def default_chat_url(user):
+    """
+    URL สำหรับเริ่มแชทกับผู้ใช้ (ต้องส่งแบบ POST)
+    ระบบแชทจะเปิดห้องเดิมถ้ามีอยู่แล้ว หรือสร้างห้องใหม่
+    """
+    try:
+        return reverse("chat:start", args=[user.pk])
+    except NoReverseMatch:
+        return None
 
 
 def get_board_adapter(required=False):

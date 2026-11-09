@@ -4,19 +4,9 @@
 {% block body_class %}landing-page{% endblock %}
 
 {% block content %}
-<main class="landing container text-center py-5 min-vh-100 d-flex flex-column align-items-center justify-content-center">
+{% include "partials/navbar.html" with overlay=True hide_brand=True %}
 
-    {% if user.is_authenticated %}
-        <nav class="top-nav d-flex align-items-center gap-3">
-            <a href="{% url 'accounts:profile_detail' %}" class="btn btn-m8 btn-m8-sm btn-m8-register">Profile</a>
-            <a href="#" class="btn btn-m8 btn-m8-sm btn-m8-register">Chat</a>
-            <a href="{% url 'board:board' %}" class="btn btn-m8 btn-m8-sm btn-m8-register">Board</a>
-            <form method="post" action="{% url 'accounts:logout' %}" class="m-0">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-m8 btn-m8-sm btn-m8-login">Log Out</button>
-            </form>
-        </nav>
-    {% endif %}
+<main class="landing container text-center py-5 min-vh-100 d-flex flex-column align-items-center justify-content-center">
 
     <h1 class="brand-logo mb-4">M8Match</h1>
 
@@ -28,8 +18,8 @@
     {% if user.is_authenticated %}
     <p class="fs-4 fw-bold mb-3">Hi, {% firstof user.profile.display_name user.username %}!</p>
         <div class="d-flex flex-wrap justify-content-center gap-3 mb-4">
-            <a href="#" class="btn btn-m8 btn-m8-login">Create Project</a>
-            <a href="{% url 'accounts:match' %}" class="btn btn-m8 btn-m8-register">Match</a>
+            <a href="{% url 'create_project' %}" class="btn btn-m8 btn-m8-login">Create Project</a>
+            <a href="{% url 'find_match' %}" class="btn btn-m8 btn-m8-register">Match</a>
         </div>
     {% else %}
         <div class="d-flex flex-wrap justify-content-center gap-3 mb-4">
