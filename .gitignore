@@ -221,3 +221,5 @@ __marimo__/
 
 # Django uploaded media files
 project/media/
+# Django collectstatic output
+project/staticfiles/

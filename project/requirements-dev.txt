@@ -1,0 +1,4 @@
+# Dev / CI tools (not needed in production)
+-r requirements.txt
+coverage==7.17.2
+flake8==7.5.0

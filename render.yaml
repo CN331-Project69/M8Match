@@ -1,0 +1,43 @@
+# Render Blueprint: https://render.com/docs/blueprint-spec
+# Render -> New -> Blueprint -> เลือก repo นี้ -> Apply
+# สร้างให้อัตโนมัติ: เว็บ (Django + Daphne), PostgreSQL, Key Value (Redis สำหรับแชท real-time)
+
+databases:
+  - name: m8match-db
+    plan: free
+    databaseName: m8match
+    user: m8match
+
+services:
+  - type: keyvalue
+    name: m8match-redis
+    plan: free
+    ipAllowList: []          # เข้าถึงได้เฉพาะจากใน Render เท่านั้น
+
+  - type: web
+    name: m8match
+    runtime: python
+    plan: free
+    rootDir: project
+    buildCommand: bash build.sh
+    # ใช้ Daphne (ASGI) เพราะแชทใช้ WebSocket
+    startCommand: daphne -b 0.0.0.0 -p $PORT project.asgi:application
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.6
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: DJANGO_SECRET_KEY
+        generateValue: true  # Render สุ่มค่าให้ ไม่ต้องใส่ใน repo
+      - key: DATABASE_URL
+        fromDatabase:
+          name: m8match-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: m8match-redis
+          property: connectionString
+      - key: CLOUDINARY_URL
+        sync: false          # ไม่บังคับ: ใส่เพื่อเก็บรูปที่อัปโหลดแบบถาวร

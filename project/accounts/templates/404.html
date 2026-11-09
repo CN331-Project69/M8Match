@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Page not found | M8Match{% endblock %}
+{% block body_class %}landing-page{% endblock %}
+
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<main class="landing container text-center pb-5" style="max-width: 640px;">
+    <section class="profile-card mt-4">
+        <h1 class="profile-name mb-2">404</h1>
+        <p class="fs-5 fw-semibold mb-1">We couldn't find that page.</p>
+        <p class="profile-empty mb-4">The link may be broken, or the page may have been removed.</p>
+        <a href="{% url 'home' %}" class="btn btn-m8 btn-m8-sm btn-m8-login">Back to Home</a>
+    </section>
+</main>
+{% endblock %}
