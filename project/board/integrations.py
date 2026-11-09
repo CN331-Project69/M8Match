@@ -74,6 +74,7 @@ class BoardIntegrationAdapter(ABC):
         แต่ละ Comment เป็น Dictionary:
         - ต้องมี: id, author_name, content, created_at
         - ไม่บังคับ: author_id
+        - ไม่บังคับ: author_picture      -> URL รูปโปรไฟล์ (ว่าง = ใช้ตัวอักษรแรกของชื่อ)
         - ไม่บังคับ: author_profile_url  -> ชื่อผู้เขียนจะกดไปดูโปรไฟล์ได้
           (ใช้ default_public_profile_url(comment.author) ได้เลย)
         - ไม่บังคับ: author_chat_url     -> มีปุ่ม Message ไปแชทกับผู้เขียน

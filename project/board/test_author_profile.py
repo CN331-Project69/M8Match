@@ -63,3 +63,76 @@ class PostAuthorProfileTests(TestCase):
         cards = get_post_cards([self.post], self.me, adapter=FakeAdapter())
         self.assertEqual(cards[0]["author_profile_url"], "/custom-profile/writer/")
         self.assertEqual(cards[0]["author_chat_url"], self.chat_url)
+
+
+class CommentAuthorProfileTests(TestCase):
+    """คอมเมนต์: ชื่อผู้คอมเมนต์กดดูโปรไฟล์ได้ และมีลิงก์แชท"""
+
+    def setUp(self):
+        from .models import Comment
+
+        User = get_user_model()
+        self.me = User.objects.create_user(username="me", password="x")
+        self.commenter = User.objects.create_user(username="helper", password="x")
+        post = Post.objects.create(author=self.me, title="Need help", content="Anyone?")
+        Comment.objects.create(post=post, author=self.commenter, content="Me!")
+        Comment.objects.create(post=post, author=self.me, content="Thanks")
+        self.url = reverse("board:post_comments", args=[post.id])
+        self.client.force_login(self.me)
+
+    def test_comment_json_has_profile_and_chat_urls(self):
+        comments = {c["author_name"]: c for c in self.client.get(self.url).json()["comments"]}
+
+        self.assertEqual(comments["helper"]["author_profile_url"], reverse("user_profile", args=["helper"]))
+        self.assertEqual(comments["helper"]["author_chat_url"], reverse("chat:start", args=[self.commenter.id]))
+        # คอมเมนต์ของตัวเอง: มีลิงก์โปรไฟล์ แต่ไม่มีปุ่มแชท
+        self.assertEqual(comments["me"]["author_profile_url"], reverse("user_profile", args=["me"]))
+        self.assertIsNone(comments["me"]["author_chat_url"])
+
+
+class LikeWithoutReloadTests(TestCase):
+    """กด Like ผ่าน fetch ได้ JSON กลับมา ไม่ต้องโหลดหน้าใหม่"""
+
+    def setUp(self):
+        User = get_user_model()
+        self.me = User.objects.create_user(username="me", password="x")
+        writer = User.objects.create_user(username="writer", password="x")
+        self.post = Post.objects.create(author=writer, title="Hello", content="World")
+        self.url = reverse("board:toggle_like", args=[self.post.id])
+        self.client.force_login(self.me)
+
+    def test_json_like_and_unlike(self):
+        first = self.client.post(self.url, HTTP_ACCEPT="application/json")
+        self.assertEqual(first.status_code, 200)
+        self.assertEqual(first.json(), {"liked": True, "like_count": 1})
+
+        second = self.client.post(self.url, HTTP_ACCEPT="application/json")
+        self.assertEqual(second.json(), {"liked": False, "like_count": 0})
+
+    def test_plain_form_still_redirects(self):
+        response = self.client.post(self.url, {"next": "/board/"})
+        self.assertRedirects(response, "/board/", fetch_redirect_response=False)
+
+    def test_board_has_ajax_like_form(self):
+        response = self.client.get(reverse("board:board"))
+        self.assertContains(response, 'class="like-form"')
+        self.assertContains(response, 'class="like-count"')
+
+
+class CommentAvatarTests(TestCase):
+    def test_comment_has_picture_and_display_name(self):
+        from accounts.models import Profile
+
+        from .models import Comment
+
+        User = get_user_model()
+        me = User.objects.create_user(username="me", password="x")
+        helper = User.objects.create_user(username="helper", password="x")
+        Profile.objects.create(user=helper, display_name="Helper Jane", profile_picture="profile_pics/jane.png")
+        post = Post.objects.create(author=me, title="Q", content="?")
+        Comment.objects.create(post=post, author=helper, content="Hi")
+
+        self.client.force_login(me)
+        comment = self.client.get(reverse("board:post_comments", args=[post.id])).json()["comments"][0]
+        self.assertEqual(comment["author_name"], "Helper Jane")
+        self.assertTrue(comment["author_picture"].endswith("profile_pics/jane.png"))

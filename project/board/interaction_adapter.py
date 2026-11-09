@@ -1,5 +1,11 @@
 
-from .integrations import BoardIntegrationAdapter
+from django.core.exceptions import ObjectDoesNotExist
+
+from .integrations import (
+    BoardIntegrationAdapter,
+    default_chat_url,
+    default_public_profile_url,
+)
 
 from .like_service import (
     toggle_like,
@@ -25,6 +31,25 @@ from .moderation.service import (
 from .models import Comment
 
 
+def _get_profile(user):
+    try:
+        return user.profile
+    except ObjectDoesNotExist:
+        return None
+
+
+def _display_name(user):
+    profile = _get_profile(user)
+    return (profile.display_name if profile else "") or user.get_username()
+
+
+def _profile_picture_url(user):
+    profile = _get_profile(user)
+    if profile and profile.profile_picture:
+        return profile.profile_picture.url
+    return ""
+
+
 class M8MatchBoardAdapter(BoardIntegrationAdapter):
 
     def get_post_interaction_data(self, posts, user):
@@ -37,15 +62,24 @@ class M8MatchBoardAdapter(BoardIntegrationAdapter):
         return get_liked_posts(user)
 
     def get_comments(self, post, user):
-        comments = get_comments(post, user)
+        comments = get_comments(post, user).select_related("author__profile")
 
         return [
             {
                 "id": comment.id,
                 "author_id": comment.author_id,
-                "author_name": comment.author.username,
+                "author_name": _display_name(comment.author),
+                # รูปโปรไฟล์ผู้คอมเมนต์ (ว่าง = แสดงตัวอักษรแรกของชื่อแทน)
+                "author_picture": _profile_picture_url(comment.author),
                 "content": comment.content,
                 "created_at": comment.created_at.isoformat(),
+                # ชื่อผู้คอมเมนต์กดดูโปรไฟล์ได้ + ปุ่ม Message (ไม่แสดงกับคอมเมนต์ของตัวเอง)
+                "author_profile_url": default_public_profile_url(comment.author),
+                "author_chat_url": (
+                    default_chat_url(comment.author)
+                    if comment.author_id != user.id
+                    else None
+                ),
             }
             for comment in comments
         ]
