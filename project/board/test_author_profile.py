@@ -63,3 +63,28 @@ class PostAuthorProfileTests(TestCase):
         cards = get_post_cards([self.post], self.me, adapter=FakeAdapter())
         self.assertEqual(cards[0]["author_profile_url"], "/custom-profile/writer/")
         self.assertEqual(cards[0]["author_chat_url"], self.chat_url)
+
+
+class CommentAuthorProfileTests(TestCase):
+    """คอมเมนต์: ชื่อผู้คอมเมนต์กดดูโปรไฟล์ได้ และมีลิงก์แชท"""
+
+    def setUp(self):
+        from .models import Comment
+
+        User = get_user_model()
+        self.me = User.objects.create_user(username="me", password="x")
+        self.commenter = User.objects.create_user(username="helper", password="x")
+        post = Post.objects.create(author=self.me, title="Need help", content="Anyone?")
+        Comment.objects.create(post=post, author=self.commenter, content="Me!")
+        Comment.objects.create(post=post, author=self.me, content="Thanks")
+        self.url = reverse("board:post_comments", args=[post.id])
+        self.client.force_login(self.me)
+
+    def test_comment_json_has_profile_and_chat_urls(self):
+        comments = {c["author_name"]: c for c in self.client.get(self.url).json()["comments"]}
+
+        self.assertEqual(comments["helper"]["author_profile_url"], reverse("user_profile", args=["helper"]))
+        self.assertEqual(comments["helper"]["author_chat_url"], reverse("chat:start", args=[self.commenter.id]))
+        # คอมเมนต์ของตัวเอง: มีลิงก์โปรไฟล์ แต่ไม่มีปุ่มแชท
+        self.assertEqual(comments["me"]["author_profile_url"], reverse("user_profile", args=["me"]))
+        self.assertIsNone(comments["me"]["author_chat_url"])

@@ -1,5 +1,9 @@
 
-from .integrations import BoardIntegrationAdapter
+from .integrations import (
+    BoardIntegrationAdapter,
+    default_chat_url,
+    default_public_profile_url,
+)
 
 from .like_service import (
     toggle_like,
@@ -46,6 +50,13 @@ class M8MatchBoardAdapter(BoardIntegrationAdapter):
                 "author_name": comment.author.username,
                 "content": comment.content,
                 "created_at": comment.created_at.isoformat(),
+                # ชื่อผู้คอมเมนต์กดดูโปรไฟล์ได้ + ปุ่ม Message (ไม่แสดงกับคอมเมนต์ของตัวเอง)
+                "author_profile_url": default_public_profile_url(comment.author),
+                "author_chat_url": (
+                    default_chat_url(comment.author)
+                    if comment.author_id != user.id
+                    else None
+                ),
             }
             for comment in comments
         ]
