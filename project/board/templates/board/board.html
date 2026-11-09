@@ -87,7 +87,17 @@ a.avatar:hover { box-shadow:0 0 0 3px #f3c4dc; }
 .author-chat .action-btn { min-height:34px; padding:6px 12px; }
 .author-name:focus-visible, a.avatar:focus-visible, .author-chat .action-btn:focus-visible,
 .comment-author:focus-visible { outline:3px solid var(--text); outline-offset:2px; }
-.comment-head { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.comment-head { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:6px; }
+.comment-avatar {
+    width:32px; height:32px; flex:0 0 32px; overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+    border-radius:50%; background:var(--pink-pale); color:var(--pink-dark);
+    font-size:.85rem; font-weight:800; text-decoration:none;
+}
+.comment-avatar img { width:100%; height:100%; object-fit:cover; }
+a.comment-avatar:hover { box-shadow:0 0 0 3px #f3c4dc; }
+.comment-item .comment-head + p { padding-left:40px; }
+.like-btn[aria-busy="true"] { opacity:.6; pointer-events:none; }
 .comment-author { color:var(--text); font-weight:800; text-decoration:none; }
 a.comment-author:hover { color:var(--pink); }
 .comment-chat { margin:0 0 0 auto; }
@@ -328,16 +338,18 @@ a.comment-author:hover { color:var(--pink); }
 
                 <div class="post-actions">
                     {% if user.is_authenticated %}
-                    <form method="POST" action="{% url 'board:toggle_like' post.id %}">
+                    <!-- กด Like แล้วอัปเดตทันทีด้วย JavaScript (ไม่โหลดหน้าใหม่) -->
+                    <form method="POST" action="{% url 'board:toggle_like' post.id %}" class="like-form">
                         {% csrf_token %}
                         <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                        <button class="action-btn {% if post.is_liked %}liked{% endif %}" type="submit">
+                        <button class="action-btn like-btn {% if post.is_liked %}liked{% endif %}" type="submit"
+                                aria-pressed="{% if post.is_liked %}true{% else %}false{% endif %}">
                             <svg viewBox="0 0 24 24" fill="{% if post.is_liked %}currentColor{% else %}none{% endif %}"
-                                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Like">
+                                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8z"/>
                             </svg>
-                            {% if post.is_liked %}Liked{% else %}Like{% endif %}
-                            {% if post.like_count %}<span>({{ post.like_count }})</span>{% endif %}
+                            <span class="like-label">{% if post.is_liked %}Liked{% else %}Like{% endif %}</span>
+                            <span class="like-count">{% if post.like_count %}({{ post.like_count }}){% endif %}</span>
                         </button>
                     </form>
                     <button type="button" class="action-btn comment-toggle" data-post-id="{{ post.id }}">
@@ -493,6 +505,38 @@ document.addEventListener("DOMContentLoaded", function () {
         return !wasOpen;
     }
 
+    // กด Like / Unlike โดยไม่โหลดหน้าใหม่
+    document.querySelectorAll(".like-form").forEach(form => {
+        form.addEventListener("submit", async event => {
+            event.preventDefault();
+            const button = form.querySelector(".like-btn");
+            if (!button || button.getAttribute("aria-busy") === "true") return;
+
+            button.setAttribute("aria-busy", "true");
+            try {
+                const response = await fetch(form.action, {
+                    method: "POST",
+                    body: new FormData(form),
+                    headers: { "Accept": "application/json" },
+                    credentials: "same-origin",
+                });
+                if (!response.ok) throw new Error();
+                const data = await response.json();
+
+                button.classList.toggle("liked", data.liked);
+                button.setAttribute("aria-pressed", data.liked ? "true" : "false");
+                button.querySelector("svg")?.setAttribute("fill", data.liked ? "currentColor" : "none");
+                button.querySelector(".like-label").textContent = data.liked ? "Liked" : "Like";
+                button.querySelector(".like-count").textContent = data.like_count ? "(" + data.like_count + ")" : "";
+            } catch (error) {
+                // ส่งแบบ fetch ไม่สำเร็จ -> ส่งฟอร์มแบบปกติแทน (โหลดหน้าใหม่)
+                form.submit();
+            } finally {
+                button.removeAttribute("aria-busy");
+            }
+        });
+    });
+
     // โหลดและแสดงคอมเมนต์
     document.querySelectorAll(".comment-toggle").forEach(button => {
         button.addEventListener("click", async function () {
@@ -527,6 +571,24 @@ document.addEventListener("DOMContentLoaded", function () {
                     // ชื่อผู้คอมเมนต์: กดไปดูโปรไฟล์ได้ถ้า Adapter ส่ง author_profile_url มา
                     const head = document.createElement("div");
                     head.className = "comment-head";
+
+                    // รูปโปรไฟล์ผู้คอมเมนต์ (ไม่มีรูป = ตัวอักษรแรกของชื่อ) กดแล้วไปหน้าโปรไฟล์
+                    const avatar = document.createElement(comment.author_profile_url ? "a" : "span");
+                    avatar.className = "comment-avatar";
+                    if (comment.author_profile_url) {
+                        avatar.href = comment.author_profile_url;
+                        avatar.tabIndex = -1;
+                        avatar.setAttribute("aria-hidden", "true");
+                    }
+                    if (comment.author_picture) {
+                        const img = document.createElement("img");
+                        img.src = comment.author_picture;
+                        img.alt = "";
+                        avatar.appendChild(img);
+                    } else {
+                        avatar.textContent = (comment.author_name || "?").charAt(0).toUpperCase();
+                    }
+                    head.appendChild(avatar);
 
                     const author = document.createElement(comment.author_profile_url ? "a" : "strong");
                     author.className = "comment-author";

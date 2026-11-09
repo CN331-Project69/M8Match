@@ -613,6 +613,13 @@ def toggle_like(request, pk):
             "toggle_like() must return a valid 'like_count'."
         )
 
+    # กด Like ผ่าน JavaScript (fetch) -> ตอบเป็น JSON ไม่ต้องโหลดหน้าใหม่
+    if "application/json" in request.headers.get("Accept", ""):
+        return JsonResponse({
+            "liked": result["liked"],
+            "like_count": _get_valid_count(result["like_count"]),
+        })
+
     # กลับไปยังหน้าที่ผู้ใช้กด Like โดยป้องกันการ Redirect ออกเว็บอื่น
     next_url = request.POST.get("next", "")
 
