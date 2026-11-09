@@ -1,7 +1,5 @@
 import re
 
-from .models import Project
-
 from django.db import transaction
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model

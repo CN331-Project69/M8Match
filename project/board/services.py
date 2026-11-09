@@ -124,7 +124,7 @@ def update_post(
     original_post = post
 
     # ล็อกแถว Post ระหว่างแก้ไข
-    locked_post = (
+    (
         Post.objects
         .select_for_update()
         .get(pk=original_post.pk)
@@ -135,7 +135,6 @@ def update_post(
 
     post = original_post
 
-
     # ตรวจสอบเนื้อหาใหม่ก่อนแก้ไข Post
     result = moderate_post(
         title=title,
@@ -145,7 +144,6 @@ def update_post(
 
     if not result["is_allowed"]:
         raise ValidationError(result["errors"])
-
 
     # ตรวจสอบ Category เดิม
     old_category_ids = set(

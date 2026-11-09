@@ -279,18 +279,17 @@ def _apply_post_moderation(form, adapter, user):
     errors = _normalize_moderation_messages(errors)
     warnings = _normalize_moderation_messages(warnings)
 
-
     # แสดงข้อผิดพลาดใต้ Field ที่เกี่ยวข้อง
-    for field_name, messages in errors.items():
+    for field_name, field_messages in errors.items():
 
         # หากระบุ Field ที่ไม่มีอยู่ ให้แสดงเป็น Non-field error
         if field_name not in form.fields:
             field_name = None
 
-        if isinstance(messages, str):
-            messages = [messages]
+        if isinstance(field_messages, str):
+            field_messages = [field_messages]
 
-        for message in messages:
+        for message in field_messages:
             form.add_error(field_name, str(message))
 
     # หากไม่ผ่านแต่ระบบไม่ได้ส่งเหตุผลกลับมา
@@ -677,7 +676,6 @@ def post_comments(request, pk):
     return JsonResponse({"comments": comments}, encoder=DjangoJSONEncoder)
 
 
-
 @login_required
 @require_POST
 def create_comment(request, pk):
@@ -729,7 +727,6 @@ def create_comment(request, pk):
         raise ImproperlyConfigured(
             "Moderation errors and warnings must be dictionaries."
         )
-
 
     for collection in (errors, warnings):
         for item in collection.values():
@@ -816,7 +813,7 @@ def report_post(request, pk):
         )
 
     # ส่งข้อมูลให้ระบบ Report ของทีมตรวจสอบ
-    
+
     try:
         adapter.submit_post_report(
             post.id,

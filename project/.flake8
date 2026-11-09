@@ -1,0 +1,11 @@
+[flake8]
+max-line-length = 120
+exclude =
+    .venv,
+    */migrations/*,
+    staticfiles,
+    media,
+    node_modules
+per-file-ignores =
+    # settings: optional imports / long comments are fine
+    project/settings.py: E501

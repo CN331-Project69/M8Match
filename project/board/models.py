@@ -46,7 +46,7 @@ class PostImage(models.Model):
 
     def __str__(self):
         return f"Image for post {self.post.id}"
-    
+
 
 class PostLike(models.Model):
     # Post ที่ถูกกด Like

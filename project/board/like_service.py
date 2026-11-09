@@ -11,6 +11,8 @@ from .models import PostLike, Comment
 ช่วยให้การเปลี่ยนแปลงฐานข้อมูลในฟังก์ชันอยู่ภายใต้ Transaction เดียวกัน
 หากเกิดข้อผิดพลาด การเปลี่ยนแปลงที่ยังไม่ Commit จะถูกย้อนกลับ
 '''
+
+
 @transaction.atomic
 def toggle_like(post, user):
     # ตรวจสอบว่าผู้ใช้ Login แล้วหรือยัง
