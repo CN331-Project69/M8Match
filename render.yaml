@@ -41,3 +41,11 @@ services:
           property: connectionString
       - key: CLOUDINARY_URL
         sync: false          # ไม่บังคับ: ใส่เพื่อเก็บรูปที่อัปโหลดแบบถาวร
+      # superuser สำหรับเข้า /admin/ (สร้างใน build.sh) ค่าจริงกรอกใน Dashboard ไม่เก็บใน git
+      # login ได้แล้วควรลบ DJANGO_SUPERUSER_PASSWORD ออกจาก Dashboard
+      - key: DJANGO_SUPERUSER_USERNAME
+        sync: false
+      - key: DJANGO_SUPERUSER_EMAIL
+        sync: false
+      - key: DJANGO_SUPERUSER_PASSWORD
+        sync: false
