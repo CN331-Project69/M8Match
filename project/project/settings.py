@@ -10,25 +10,65 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
-from pathlib import Path
 import os
+import sys
+from pathlib import Path
+
+import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-
-SECRET_KEY = "s@6$95cqr%g@r19t&(#f-eu9td--yaiy5wxp=-mwjxlzm&zh7s"
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+def env_bool(name, default=False):
+    """อ่านค่า True/False จาก environment variable (เช่น DJANGO_DEBUG=False)"""
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
 
-ALLOWED_HOSTS = []
+
+def env_list(name):
+    """อ่านค่าหลายค่าที่คั่นด้วย , จาก environment variable"""
+    return [item.strip() for item in os.environ.get(name, "").split(",") if item.strip()]
+
+
+# Render ตั้งค่า RENDER=true ให้อัตโนมัติ -> ใช้แยกเครื่องเรา (dev) กับ production
+IS_PRODUCTION = "RENDER" in os.environ
+TESTING = len(sys.argv) > 1 and sys.argv[1] == "test"
+
+# SECURITY WARNING: don't run with debug turned on in production!
+# ในเครื่อง: DEBUG เปิดอยู่ (ปิดได้ด้วย DJANGO_DEBUG=False)  / บน Render: ปิดเสมอ ถ้าไม่ได้ตั้งค่าเอง
+DEBUG = env_bool("DJANGO_DEBUG", default=not IS_PRODUCTION)
+
+# SECURITY WARNING: keep the secret key used in production secret!
+# ค่าจริงต้องมาจาก environment variable เท่านั้น (Render สร้างให้ใน render.yaml)
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
+if not SECRET_KEY:
+    if IS_PRODUCTION:
+        raise ImproperlyConfigured("DJANGO_SECRET_KEY must be set in production.")
+    # ใช้เฉพาะตอนพัฒนาในเครื่อง ห้ามใช้บน production
+    SECRET_KEY = "django-insecure-local-dev-only-do-not-use-in-production"
+
+ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS") or ["localhost", "127.0.0.1", "[::1]"]
+CSRF_TRUSTED_ORIGINS = env_list("DJANGO_CSRF_TRUSTED_ORIGINS")
+
+# Render ส่งชื่อโดเมนของเว็บมาให้ (เช่น m8match.onrender.com)
+RENDER_EXTERNAL_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+    CSRF_TRUSTED_ORIGINS.append(f"https://{RENDER_EXTERNAL_HOSTNAME}")
+
+# เก็บรูปที่ผู้ใช้อัปโหลดบน Cloudinary เมื่อมี CLOUDINARY_URL
+# (Render แบบฟรีไม่มีพื้นที่เก็บไฟล์ถาวร ไฟล์ในเครื่องจะหายเมื่อ deploy ใหม่)
+USE_CLOUDINARY = bool(os.environ.get("CLOUDINARY_URL"))
 
 
 # Application definition
 
 INSTALLED_APPS = [
-    "daphne", 
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -43,8 +83,13 @@ INSTALLED_APPS = [
     "chat",
 ]
 
+if USE_CLOUDINARY:
+    INSTALLED_APPS += ["cloudinary_storage", "cloudinary"]
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # เสิร์ฟไฟล์ static (CSS/JS/รูปของเว็บ) บน production โดยไม่ต้องมี nginx
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -77,11 +122,13 @@ WSGI_APPLICATION = "project.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# ในเครื่องใช้ SQLite / บน Render ใช้ PostgreSQL จาก DATABASE_URL
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
+    "default": dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 
@@ -120,8 +167,28 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+STORAGES = {
+    "default": {
+        "BACKEND": (
+            "cloudinary_storage.storage.MediaCloudinaryStorage"
+            if USE_CLOUDINARY
+            else "django.core.files.storage.FileSystemStorage"
+        ),
+    },
+    "staticfiles": {
+        # production: บีบอัด + ใส่ hash ในชื่อไฟล์ (cache ได้นาน)
+        # ตอนรัน test ใช้แบบธรรมดา เพราะไม่ได้รัน collectstatic ก่อน
+        "BACKEND": (
+            "whitenoise.storage.CompressedManifestStaticFilesStorage"
+            if not DEBUG and not TESTING
+            else "django.contrib.staticfiles.storage.StaticFilesStorage"
+        ),
+    },
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -136,10 +203,48 @@ BOARD_INTEGRATION_ADAPTER = "board.interaction_adapter.M8MatchBoardAdapter"
 
 ASGI_APPLICATION = "project.asgi.application"
 
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer"
+# แชท real-time: production ใช้ Redis (ส่งข้อความข้าม process ได้) / ในเครื่องใช้หน่วยความจำ
+REDIS_URL = os.environ.get("REDIS_URL")
+if REDIS_URL:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {"hosts": [REDIS_URL]},
+        }
     }
+else:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels.layers.InMemoryChannelLayer"
+        }
+    }
+
+# ---------------------------------------------------------------------------
+# Security (เปิดเมื่อ DEBUG=False)  ตรวจด้วย: python manage.py check --deploy
+# ---------------------------------------------------------------------------
+if not DEBUG:
+    # Render รับ HTTPS แล้วส่งต่อมาเป็น HTTP พร้อม header นี้
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_SSL_REDIRECT = env_bool("DJANGO_SECURE_SSL_REDIRECT", default=True)
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = int(os.environ.get("DJANGO_SECURE_HSTS_SECONDS", "3600"))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = False
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_REFERRER_POLICY = "same-origin"
+    X_FRAME_OPTIONS = "DENY"
+
+# ตั้งใจไม่เปิด HSTS preload: ย้อนกลับไม่ได้ และไม่เหมาะกับโดเมนย่อยของ onrender.com
+SILENCED_SYSTEM_CHECKS = ["security.W021"]
+
+# แสดง error ใน log ของ Render (ไม่แสดงบนหน้าเว็บเมื่อ DEBUG=False)
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "root": {"handlers": ["console"], "level": "INFO"},
+    "loggers": {
+        "django": {"handlers": ["console"], "level": "INFO", "propagate": False},
+    },
 }
-
-

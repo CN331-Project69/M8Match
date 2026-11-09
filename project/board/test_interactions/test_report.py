@@ -106,7 +106,6 @@ class ReportTests(TestCase):
 
         self.assertFalse(self.post.is_hidden)
 
-
     def test_report_hides_spam_post(self):
         # เปลี่ยนเนื้อหาให้ไม่ผ่านกฎ Spam
         self.post.content = "aaaaaaaaaaaa"

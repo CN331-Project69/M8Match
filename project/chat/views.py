@@ -13,7 +13,7 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from PIL import Image, UnidentifiedImageError
-    
+
 from .models import Conversation, Message
 from .services import get_or_create_direct_conversation
 
@@ -193,6 +193,7 @@ def message_image(request, message_id):
     )
 
     return FileResponse(message.image.open("rb"), content_type=content_type)
+
 
 @login_required
 @require_POST

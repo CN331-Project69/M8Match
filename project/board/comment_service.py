@@ -31,7 +31,6 @@ def get_comments(post, user):
     )
 
 
-
 @transaction.atomic
 def create_comment(post, user, content):
     # ตรวจสอบการเข้าสู่ระบบ

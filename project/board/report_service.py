@@ -8,6 +8,7 @@ from .moderation.service import (
     review_reported_comment,
 )
 
+
 def validate_report(user, owner, reason):
     # ต้อง Login ก่อน
     if not user.is_authenticated:
@@ -83,7 +84,7 @@ def submit_comment_report(comment, user, reason):
         raise ValidationError("Unable to save report.")
 
     if not created:
-        raise ValidationError( "You have already reported this comment." )
+        raise ValidationError("You have already reported this comment.")
 
     # ตรวจเนื้อหาคอมเมนต์ซ้ำ
     review_reported_comment(comment)

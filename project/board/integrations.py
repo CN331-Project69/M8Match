@@ -142,19 +142,6 @@ class BoardIntegrationAdapter(ABC):
         """
 
     @abstractmethod
-    def get_liked_posts(self, user):
-        """
-        ดึงรายการ Post ที่ผู้ใช้กด Like ไว้
-
-        ข้อกำหนด:
-        - คืนค่าเป็นรายการ Post ของ Board
-        - เรียงจาก Like ล่าสุดไปเก่าสุด
-        - ไม่คืน Post ที่ถูกซ่อน
-        - ต้องดึงข้อมูลโดยไม่เกิด N+1 Queries
-        - ไม่สร้าง Like Model ซ้ำในแอป Board
-        """
-
-    @abstractmethod
     def get_comment_for_report(self, comment_id):
         """
         ค้นหา Comment จริงจาก ID

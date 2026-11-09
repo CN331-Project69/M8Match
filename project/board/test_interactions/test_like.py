@@ -69,7 +69,6 @@ class LikeTests(TestCase):
         with self.assertRaises(PermissionDenied):
             toggle_like(self.post, guest)
 
-
     def test_post_interaction_data(self):
         # สร้างโพสต์ที่สอง
         post2 = Post.objects.create(

@@ -4,10 +4,8 @@ from .views import (
     CustomLoginView,
     CustomLogoutView,
     HomeView,
-    ProfileUpdateView,
 )
 from . import views
-from django.contrib.auth import views as auth_views
 from django.views.generic import RedirectView
 
 urlpatterns = [
